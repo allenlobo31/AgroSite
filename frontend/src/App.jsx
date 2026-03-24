@@ -8,25 +8,10 @@ import Products from './components/Products';
 import PromoBanner from './components/PromoBanner';
 import Footer from './components/Footer';
 import CartSidebar from './components/CartSidebar';
+import LoginPage from './components/LoginPage';
+import SignupPage from './components/SignupPage';
 
-// Partners section inline
-function Partners() {
-  const partners = [
-    'USDA ORGANIC', 'NON-GMO PROJECT', 'RAINFOREST ALLIANCE', 'FAIR TRADE', 'B CORP', 'DEMETER'
-  ];
-  return (
-    <div className="partners-section">
-      <div className="partners-inner">
-        <p className="partners-label">Backed by certified partners and visionary farms</p>
-        <div className="partners-logos">
-          {partners.map(p => (
-            <span key={p} className="partner-logo">{p}</span>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+
 
 // Toast notification
 function Toast({ message, onDone }) {
@@ -44,6 +29,7 @@ function Toast({ message, onDone }) {
 }
 
 export default function App() {
+  const [page, setPage] = useState('home'); // 'home' | 'login' | 'signup'
   const [cartItems, setCartItems] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [toast, setToast] = useState(null);
@@ -73,12 +59,26 @@ export default function App() {
     setCartItems(prev => prev.filter(it => it.id !== id));
   };
 
+  const navigate = (target) => {
+    setPage(target);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ── Auth pages (full-screen, no Navbar/Footer) ──
+  if (page === 'login') return <LoginPage onNavigate={navigate} />;
+  if (page === 'signup') return <SignupPage onNavigate={navigate} />;
+
+  // ── Main site ──
   return (
     <>
-      <Navbar cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
+      <Navbar
+        cartCount={cartCount}
+        onCartOpen={() => setCartOpen(true)}
+        onLogin={() => navigate('login')}
+        onSignup={() => navigate('signup')}
+      />
       <main>
         <Hero />
-        <Partners />
         <Features />
         <Products onAddToCart={addToCart} />
         <PromoBanner />
@@ -99,3 +99,4 @@ export default function App() {
     </>
   );
 }
+

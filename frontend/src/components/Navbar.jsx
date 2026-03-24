@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function Navbar({ cartCount, onCartOpen }) {
+export default function Navbar({ cartCount, onCartOpen, onLogin, onSignup }) {
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -17,6 +17,8 @@ export default function Navbar({ cartCount, onCartOpen }) {
         setMobileOpen(false);
     };
 
+    const isLight = scrolled; // text is dark when scrolled
+
     return (
         <nav className={navClass} id="navbar">
             {/* Logo */}
@@ -29,25 +31,46 @@ export default function Navbar({ cartCount, onCartOpen }) {
             <ul className="nav-links">
                 <li><a href="#" onClick={(e) => { e.preventDefault(); scrollTo('products'); }}>Shop</a></li>
                 <li><a href="#" onClick={(e) => { e.preventDefault(); scrollTo('features'); }}>About</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); scrollTo('testimonials'); }}>Reviews</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); scrollTo('newsletter'); }}>Contact</a></li>
             </ul>
 
             {/* Actions */}
             <div className="nav-actions">
+                {/* Cart */}
                 <button className="nav-cart-btn" onClick={onCartOpen} aria-label="Open cart" id="nav-cart-btn">
                     🛒
-                    {cartCount > 0 && (
-                        <span className="cart-badge">{cartCount}</span>
-                    )}
+                    {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
                 </button>
-                <button className="nav-cta-btn" onClick={() => scrollTo('products')}>Shop Now</button>
+
+                {/* Login — ghost */}
+                <button
+                    id="nav-login-btn"
+                    onClick={onLogin}
+                    style={{
+                        padding: '8px 18px',
+                        background: 'transparent',
+                        border: `1.5px solid ${isLight ? 'rgba(22,163,74,0.6)' : 'rgba(255,255,255,0.4)'}`,
+                        borderRadius: 25,
+                        fontSize: 14, fontWeight: 500, cursor: 'pointer',
+                        color: isLight ? '#16a34a' : 'white',
+                        fontFamily: 'Inter, sans-serif',
+                        transition: 'all 0.25s ease',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = isLight ? 'rgba(22,163,74,0.08)' : 'rgba(255,255,255,0.12)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                    Log In
+                </button>
+
+                {/* Sign Up — filled */}
+                <button id="nav-signup-btn" className="nav-cta-btn" onClick={onSignup}>
+                    Sign Up
+                </button>
 
                 {/* Hamburger */}
                 <button className="hamburger" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-                    <span style={{ color: scrolled ? '#374151' : 'white' }} />
-                    <span style={{ color: scrolled ? '#374151' : 'white' }} />
-                    <span style={{ color: scrolled ? '#374151' : 'white' }} />
+                    <span style={{ color: isLight ? '#374151' : 'white' }} />
+                    <span style={{ color: isLight ? '#374151' : 'white' }} />
+                    <span style={{ color: isLight ? '#374151' : 'white' }} />
                 </button>
             </div>
 
@@ -61,10 +84,10 @@ export default function Navbar({ cartCount, onCartOpen }) {
                     zIndex: 999,
                     boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
                 }}>
-                    {['Shop', 'About', 'Reviews', 'Contact'].map((item, i) => (
+                    {['Shop', 'About'].map((item, i) => (
                         <a key={i} href="#" onClick={(e) => {
                             e.preventDefault();
-                            scrollTo(['products', 'features', 'testimonials', 'newsletter'][i]);
+                            scrollTo(['products', 'features'][i]);
                         }} style={{
                             fontSize: '16px', fontWeight: '500', color: '#374151',
                             textDecoration: 'none', padding: '0.5rem 0',
@@ -73,6 +96,17 @@ export default function Navbar({ cartCount, onCartOpen }) {
                             {item}
                         </a>
                     ))}
+                    <button onClick={() => { onLogin(); setMobileOpen(false); }} style={{
+                        padding: '12px', border: '1.5px solid #16a34a', borderRadius: 10,
+                        background: 'transparent', color: '#16a34a', fontWeight: 600,
+                        cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, sans-serif',
+                    }}>Log In</button>
+                    <button onClick={() => { onSignup(); setMobileOpen(false); }} style={{
+                        padding: '12px', border: 'none', borderRadius: 10,
+                        background: 'linear-gradient(135deg,#16a34a,#22c55e)', color: 'white',
+                        fontWeight: 600, cursor: 'pointer', fontSize: 15,
+                        fontFamily: 'Inter, sans-serif',
+                    }}>Sign Up</button>
                 </div>
             )}
         </nav>

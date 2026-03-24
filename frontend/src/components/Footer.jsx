@@ -56,26 +56,6 @@ export default function Footer() {
                     ))}
                 </div>
 
-                {/* Partnership logos text */}
-                <div style={{
-                    borderTop: '1px solid rgba(255,255,255,0.06)',
-                    borderBottom: '1px solid rgba(255,255,255,0.06)',
-                    padding: '2rem 0',
-                    marginBottom: '2rem'
-                }}>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
-                        Trusted by our partners
-                    </p>
-                    <div style={{ display: 'flex', gap: '3rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                        {['USDA ORGANIC', 'NON-GMO PROJECT', 'RAINFOREST ALLIANCE', 'FAIR TRADE', 'B CORP'].map(p => (
-                            <span key={p} style={{
-                                fontSize: 12, fontWeight: 700,
-                                color: 'rgba(255,255,255,0.18)',
-                                letterSpacing: '0.08em'
-                            }}>{p}</span>
-                        ))}
-                    </div>
-                </div>
 
                 <div className="footer-bottom">
                     <p>© 2024 AgroSite. All rights reserved.</p>
