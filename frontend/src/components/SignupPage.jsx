@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { RightPanel } from './LoginPage';
 
-export default function SignupPage({ onNavigate }) {
+export default function SignupPage({ onNavigate, onLogin }) {
     const [showPw, setShowPw] = useState(false);
     const [form, setForm] = useState({ name: '', email: '', password: '' });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onNavigate('home');
+        onLogin({ name: form.name.trim() || form.email.split('@')[0], email: form.email, phone: '' });
     };
 
     const inputStyle = {
@@ -63,8 +63,10 @@ export default function SignupPage({ onNavigate }) {
                             background: 'linear-gradient(135deg, #16a34a, #22c55e)',
                             borderRadius: 8,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 15, boxShadow: '0 4px 12px rgba(34,197,94,0.4)',
-                        }}>🌿</div>
+                            fontSize: 13, fontWeight: 700, color: 'white',
+                            boxShadow: '0 4px 12px rgba(34,197,94,0.4)',
+                            fontFamily: 'Inter, sans-serif', letterSpacing: '-0.5px',
+                        }}>AG</div>
                         <span style={{
                             fontFamily: 'Playfair Display, Georgia, serif',
                             fontWeight: 700, fontSize: 20, color: '#0a0f0d',

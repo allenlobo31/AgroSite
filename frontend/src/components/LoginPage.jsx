@@ -1,12 +1,14 @@
 import { useState } from 'react';
 
-export default function LoginPage({ onNavigate }) {
+export default function LoginPage({ onNavigate, onLogin }) {
     const [showPw, setShowPw] = useState(false);
     const [form, setForm] = useState({ email: '', password: '' });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onNavigate('home');
+        // Derive a display name from the email (part before @)
+        const name = form.email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        onLogin({ name, email: form.email, phone: '' });
     };
 
     return (
@@ -54,8 +56,10 @@ export default function LoginPage({ onNavigate }) {
                             background: 'linear-gradient(135deg, #16a34a, #22c55e)',
                             borderRadius: 8,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 15, boxShadow: '0 4px 12px rgba(34,197,94,0.4)',
-                        }}>🌿</div>
+                            fontSize: 13, fontWeight: 700, color: 'white',
+                            boxShadow: '0 4px 12px rgba(34,197,94,0.4)',
+                            fontFamily: 'Inter, sans-serif', letterSpacing: '-0.5px',
+                        }}>AG</div>
                         <span style={{
                             fontFamily: 'Playfair Display, Georgia, serif',
                             fontWeight: 700, fontSize: 20, color: '#0a0f0d',
@@ -165,33 +169,34 @@ export default function LoginPage({ onNavigate }) {
 /* ── Shared right-panel: blurred hero-bg.png ── */
 export function RightPanel() {
     return (
-        <div style={{
-            position: 'relative',
-            overflow: 'hidden',
-            borderRadius: '0 28px 28px 0',
-            minHeight: 560,
-        }}>
-            {/* Background image — fills the panel */}
-            <img
-                src="/hero-bg.png"
-                alt="Fresh farm landscape"
-                style={{
-                    position: 'absolute', inset: 0,
-                    width: '100%', height: '100%',
-                    objectFit: 'cover',
-                    display: 'block',
-                }}
-            />
+        <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '0 28px 28px 0', minHeight: 560 }}>
+            {/* Background image */}
+            <img src="/hero-bg.png" alt="Fresh farm landscape" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
 
             {/* Blur glass layer */}
-            <div style={{
-                position: 'absolute', inset: 0,
-                background: 'rgba(5, 30, 12, 0.30)',
-            }} />
+            <div style={{ position: 'absolute', inset: 0, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', background: 'rgba(5,30,12,0.30)' }} />
 
+            {/* Vignette */}
+            <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.35) 100%)' }} />
 
+            {/* Centre card */}
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', gap: '1rem' }}>
+                <div style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 20, padding: '1.75rem 2rem', textAlign: 'center', maxWidth: 260, boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(34,197,94,0.25)', border: '1px solid rgba(34,197,94,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', fontSize: 20, fontWeight: 700, color: '#86efac', letterSpacing: '-0.5px', fontFamily: 'Inter, sans-serif' }}>AG</div>
+                    <div style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 22, fontWeight: 700, color: 'white', lineHeight: 1.3, marginBottom: '0.5rem', textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>Grow fresh,<br />live healthy</div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>100% organic produce<br />delivered to your door</div>
+                </div>
 
-
+                {/* Stat pills */}
+                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {[{ label: '4.9 Rating' }, { label: 'Free Delivery' }, { label: 'Farm Direct' }].map((p, i) => (
+                        <div key={i} style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 25, padding: '5px 14px', fontSize: 12, fontWeight: 600, color: 'white' }}>
+                            {p.label}
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }
+

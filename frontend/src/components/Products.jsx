@@ -1,45 +1,45 @@
 import { useState } from 'react';
 
-const ALL_PRODUCTS = [
+export const ALL_PRODUCTS = [
     {
         id: 1, name: 'Organic Fuji Apples', category: 'Fruits',
         price: 4.99, original: 6.99, rating: 4.8, reviews: 214,
-        badge: 'organic', image: '/product-apple.png', emoji: '🍎'
+        badge: 'organic', image: '/product-apple.png',
     },
     {
         id: 2, name: 'Vine Ripened Tomatoes', category: 'Vegetables',
         price: 3.49, original: null, rating: 4.7, reviews: 186,
-        badge: 'new', image: '/product-tomato.png', emoji: '🍅'
+        badge: 'new', image: '/product-tomato.png',
     },
     {
         id: 3, name: 'Baby Spinach Leaves', category: 'Vegetables',
         price: 2.99, original: 3.99, rating: 4.9, reviews: 312,
-        badge: 'sale', image: '/product-spinach.png', emoji: '🥬'
+        badge: 'sale', image: '/product-spinach.png',
     },
     {
         id: 4, name: 'Farm Fresh Carrots', category: 'Vegetables',
         price: 2.49, original: null, rating: 4.6, reviews: 97,
-        badge: 'organic', image: '/product-carrot.png', emoji: '🥕'
+        badge: 'organic', image: '/product-carrot.png',
     },
     {
         id: 5, name: 'Raw Wildflower Honey', category: 'Pantry',
         price: 12.99, original: 15.99, rating: 5.0, reviews: 423,
-        badge: 'organic', image: '/product-honey.png', emoji: '🍯'
+        badge: 'organic', image: '/product-honey.png',
     },
     {
         id: 6, name: 'Heirloom Seed Kit', category: 'Seeds',
         price: 24.99, original: 34.99, rating: 4.8, reviews: 156,
-        badge: 'sale', image: '/feature-seeds.png', emoji: '🌰'
+        badge: 'sale', image: '/feature-seeds.png',
     },
     {
         id: 7, name: 'Premium Garden Tools Set', category: 'Tools',
         price: 49.99, original: 64.99, rating: 4.7, reviews: 89,
-        badge: 'new', image: '/feature-tools.png', emoji: '🪴'
+        badge: 'new', image: '/feature-tools.png',
     },
     {
         id: 8, name: 'Organic Compost Mix', category: 'Fertilizers',
         price: 14.99, original: null, rating: 4.5, reviews: 67,
-        badge: 'organic', image: '/feature-seeds.png', emoji: '🌿'
+        badge: 'organic', image: '/feature-seeds.png',
     },
 ];
 
@@ -55,7 +55,7 @@ function StarRating({ rating }) {
     );
 }
 
-export default function Products({ onAddToCart }) {
+export default function Products({ onAddToCart, onProductClick }) {
     const [activeCategory, setActiveCategory] = useState('All');
     const [wishlist, setWishlist] = useState(new Set());
 
@@ -97,7 +97,13 @@ export default function Products({ onAddToCart }) {
 
                 <div className="products-grid">
                     {filtered.map(product => (
-                        <div className="product-card" key={product.id} id={`product-${product.id}`}>
+                        <div
+                            className="product-card"
+                            key={product.id}
+                            id={`product-${product.id}`}
+                            onClick={() => onProductClick(product.id)}
+                            style={{ cursor: 'pointer' }}
+                        >
                             <div className="product-img-wrap">
                                 <img
                                     src={product.image}
@@ -112,16 +118,9 @@ export default function Products({ onAddToCart }) {
                                     }}
                                 />
                                 <span className={`product-badge ${badgeClass[product.badge]}`}>
-                                    {product.badge === 'organic' ? '🌿 Organic' : product.badge === 'sale' ? '🔥 Sale' : '✨ New'}
+                                    {product.badge === 'organic' ? 'Organic' : product.badge === 'sale' ? 'Sale' : 'New'}
                                 </span>
-                                <button
-                                    className="product-wishlist"
-                                    onClick={() => toggleWishlist(product.id)}
-                                    aria-label="Add to wishlist"
-                                    id={`wishlist-${product.id}`}
-                                >
-                                    {wishlist.has(product.id) ? '❤️' : '🤍'}
-                                </button>
+
                             </div>
 
                             <div className="product-info">
@@ -140,7 +139,7 @@ export default function Products({ onAddToCart }) {
                                     </div>
                                     <button
                                         className="add-to-cart-btn"
-                                        onClick={() => onAddToCart(product)}
+                                        onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
                                         aria-label={`Add ${product.name} to cart`}
                                         id={`add-cart-${product.id}`}
                                     >

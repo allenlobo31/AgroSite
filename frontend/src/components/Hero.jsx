@@ -1,9 +1,4 @@
-const MINI_CARDS = [
-    { emoji: '🍎', name: 'Organic Apples', reviews: '2.5k', rating: 4.8, price: '$4.99' },
-    { emoji: '🍅', name: 'Vine Tomatoes', reviews: '2.5k', rating: 4.7, price: '$3.49' },
-    { emoji: '🥬', name: 'Baby Spinach', reviews: '2.5k', rating: 4.9, price: '$2.99' },
-    { emoji: '🍯', name: 'Wild Honey', reviews: '2.5k', rating: 5.0, price: '$12.99' },
-];
+
 
 export default function Hero() {
     const scrollTo = (id) => {
@@ -18,7 +13,7 @@ export default function Hero() {
             display: 'flex',
             flexDirection: 'column',
         }}>
-            {/* ── Background image (unchanged) ── */}
+            {/* ── Background image ── */}
             <div style={{
                 position: 'absolute', inset: 0,
                 backgroundImage: "url('/hero-bg.png')",
@@ -34,35 +29,8 @@ export default function Hero() {
                 zIndex: 1,
             }} />
 
-            {/* ── Decorative blobs ── */}
-            <div style={{
-                position: 'absolute', top: '-80px', right: '-80px',
-                width: 420, height: 420,
-                background: 'radial-gradient(circle, rgba(34,197,94,0.25) 0%, transparent 70%)',
-                borderRadius: '50%', zIndex: 1, pointerEvents: 'none',
-            }} />
-            <div style={{
-                position: 'absolute', bottom: 80, left: '-60px',
-                width: 300, height: 300,
-                background: 'radial-gradient(circle, rgba(74,222,128,0.15) 0%, transparent 70%)',
-                borderRadius: '50%', zIndex: 1, pointerEvents: 'none',
-            }} />
 
-            {/* ── Floating leaves decoration ── */}
-            <div style={{
-                position: 'absolute', top: '15%', right: '5%',
-                fontSize: 80, opacity: 0.18, zIndex: 2,
-                transform: 'rotate(-30deg)',
-                pointerEvents: 'none',
-                animation: 'leafFloat 6s ease-in-out infinite',
-            }}>🍃</div>
-            <div style={{
-                position: 'absolute', bottom: '25%', left: '3%',
-                fontSize: 60, opacity: 0.15, zIndex: 2,
-                transform: 'rotate(20deg)',
-                pointerEvents: 'none',
-                animation: 'leafFloat 8s ease-in-out infinite reverse',
-            }}>🌿</div>
+
 
             {/* ── Main content ── */}
             <div style={{
@@ -98,7 +66,7 @@ export default function Hero() {
                             background: '#fbbf24',
                             animation: 'pulse 2s infinite',
                         }} />
-                        Checking the harvest 🌾
+                        Checking the harvest
                     </div>
 
                     {/* Headline */}

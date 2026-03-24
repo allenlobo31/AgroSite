@@ -10,8 +10,8 @@ import Footer from './components/Footer';
 import CartSidebar from './components/CartSidebar';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
-
-
+import ProfilePage from './components/ProfilePage';
+import ProductDetailPage from './components/ProductDetailPage';
 
 // Toast notification
 function Toast({ message, onDone }) {
@@ -22,14 +22,21 @@ function Toast({ message, onDone }) {
 
   return (
     <div className="toast" id="add-to-cart-toast">
-      <span className="toast-icon">✅</span>
+      <span className="toast-icon">&#10003;</span>
       {message}
     </div>
   );
 }
 
 export default function App() {
-  const [page, setPage] = useState('home'); // 'home' | 'login' | 'signup'
+  // ── Auth state ──
+  const [user, setUser] = useState(null);
+
+  // ── Navigation ──
+  const [page, setPage] = useState('home');
+  const [selectedProductId, setSelectedProductId] = useState(null);
+
+  // ── Cart ──
   const [cartItems, setCartItems] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [toast, setToast] = useState(null);
@@ -59,14 +66,34 @@ export default function App() {
     setCartItems(prev => prev.filter(it => it.id !== id));
   };
 
-  const navigate = (target) => {
+  const navigate = (target, id = null) => {
     setPage(target);
+    if (id) setSelectedProductId(id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // ── Auth pages (full-screen, no Navbar/Footer) ──
-  if (page === 'login') return <LoginPage onNavigate={navigate} />;
-  if (page === 'signup') return <SignupPage onNavigate={navigate} />;
+  // Called by LoginPage / SignupPage on successful submit
+  const handleLogin = (userData) => {
+    setUser(userData);
+    navigate('home');
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    navigate('home');
+  };
+
+  // ── Auth / Profile / Product pages (full-screen) ──
+  if (page === 'login')   return <LoginPage  onNavigate={navigate} onLogin={handleLogin} />;
+  if (page === 'signup')  return <SignupPage  onNavigate={navigate} onLogin={handleLogin} />;
+  if (page === 'profile') return <ProfilePage onNavigate={navigate} user={user} onLogout={handleLogout} />;
+  if (page === 'product') return (
+    <ProductDetailPage
+      productId={selectedProductId}
+      onNavigate={navigate}
+      onAddToCart={addToCart}
+    />
+  );
 
   // ── Main site ──
   return (
@@ -74,13 +101,16 @@ export default function App() {
       <Navbar
         cartCount={cartCount}
         onCartOpen={() => setCartOpen(true)}
+        user={user}
         onLogin={() => navigate('login')}
         onSignup={() => navigate('signup')}
+        onProfile={() => navigate('profile')}
+        onLogout={handleLogout}
       />
       <main>
         <Hero />
         <Features />
-        <Products onAddToCart={addToCart} />
+        <Products onAddToCart={addToCart} onProductClick={(id) => navigate('product', id)} />
         <PromoBanner />
       </main>
       <Footer />
@@ -99,4 +129,3 @@ export default function App() {
     </>
   );
 }
-

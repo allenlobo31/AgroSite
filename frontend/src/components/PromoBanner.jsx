@@ -7,7 +7,7 @@ export default function PromoBanner() {
         <div className="banner-section">
             <div className="banner-inner">
                 <div className="banner-content">
-                    <div className="banner-tag">🌾 Seasonal Harvest</div>
+                    <div className="banner-tag">Seasonal Harvest</div>
                     <h2 className="banner-title">Fresh from the<br />field to your table</h2>
                     <p className="banner-desc">
                         Discover our curated selection of seasonal produce, harvested at peak ripeness
