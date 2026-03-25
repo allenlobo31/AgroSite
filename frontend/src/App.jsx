@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './App.css';
 
 import Navbar from './components/Navbar';
@@ -83,6 +83,7 @@ export default function App() {
     navigate('home');
   };
 
+  const handleToastDone = useCallback(() => setToast(null), []);
   // ── Auth / Profile / Product pages (full-screen) ──
   if (page === 'login')   return <LoginPage  onNavigate={navigate} onLogin={handleLogin} />;
   if (page === 'signup')  return <SignupPage  onNavigate={navigate} onLogin={handleLogin} />;
@@ -124,7 +125,7 @@ export default function App() {
       />
 
       {toast && (
-        <Toast message={toast} onDone={() => setToast(null)} />
+        <Toast message={toast} onDone={handleToastDone} />
       )}
     </>
   );

@@ -132,10 +132,10 @@ export default function Navbar({ cartCount, onCartOpen, user, onLogin, onSignup,
                     display: 'flex', flexDirection: 'column', gap: '1rem',
                     zIndex: 999, boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
                 }}>
-                    {['Shop', 'About'].map((item, i) => (
-                        <a key={i} href="#" onClick={(e) => { e.preventDefault(); scrollTo(['products', 'features'][i]); }}
+                    {[{ label: 'Shop', id: 'products' }, { label: 'About', id: 'features' }].map((item) => (
+                        <a key={item.id} href="#" onClick={(e) => { e.preventDefault(); scrollTo(item.id); }}
                             style={{ fontSize: 16, fontWeight: 500, color: '#374151', textDecoration: 'none', padding: '0.5rem 0', borderBottom: '1px solid #f9fafb' }}>
-                            {item}
+                            {item.label}
                         </a>
                     ))}
                     {user ? (

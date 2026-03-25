@@ -78,24 +78,28 @@ const PRODUCT_DETAILS = {
 };
 
 /* ── Star rating ── */
+const STAR_ARRAY = [1, 2, 3, 4, 5]; // Reuse array to avoid recreation on render
+
 function Stars({ rating, size = 16 }) {
   return (
     <div style={{ display: 'flex', gap: 2 }}>
-      {[1, 2, 3, 4, 5].map(i => (
+      {STAR_ARRAY.map(i => (
         <span key={i} style={{ fontSize: size, color: i <= Math.round(rating) ? '#f59e0b' : '#e5e7eb', lineHeight: 1 }}>&#9733;</span>
       ))}
     </div>
   );
 }
 
+/* ── Badge styling ── */
+const BADGE_STYLES = {
+  organic: { label: 'Organic', bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+  sale:    { label: 'Sale',    bg: '#fef3c7', color: '#92400e', border: '#fde68a' },
+  new:     { label: 'New',     bg: '#eff6ff', color: '#1e40af', border: '#bfdbfe' },
+};
+
 /* ── Badge ── */
 function Badge({ type }) {
-  const map = {
-    organic: { label: 'Organic', bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
-    sale:    { label: 'Sale',    bg: '#fef3c7', color: '#92400e', border: '#fde68a' },
-    new:     { label: 'New',     bg: '#eff6ff', color: '#1e40af', border: '#bfdbfe' },
-  };
-  const s = map[type] || map.organic;
+  const s = BADGE_STYLES[type] || BADGE_STYLES.organic;
   return (
     <span style={{ padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>
       {s.label}

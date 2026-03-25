@@ -1,10 +1,6 @@
 
 
 export default function Hero() {
-    const scrollTo = (id) => {
-        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-    };
-
     return (
         <section id="hero" style={{
             minHeight: '100vh',

@@ -1,4 +1,4 @@
-/* Professional SVG icon set — no emojis */
+// Professional SVG icon set — no emojis (outside component for optimization)
 const ICONS = {
   seed: (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -121,8 +121,8 @@ export default function Features() {
           </div>
 
           {/* Smaller feature cards */}
-          {rest.map((f, i) => (
-            <div className="feature-card" key={i}>
+          {rest.map((f) => (
+            <div className="feature-card" key={f.iconKey}>
               <div className="feature-icon">{ICONS[f.iconKey]}</div>
               <h3 className="feature-title" style={{ marginTop: '1rem' }}>{f.title}</h3>
               <p className="feature-desc">{f.desc}</p>

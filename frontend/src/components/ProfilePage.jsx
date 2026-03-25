@@ -47,11 +47,27 @@ export default function ProfilePage({ onNavigate, user, onLogout }) {
   const [activeTab, setActiveTab] = useState('profile');
   const [editing, setEditing] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState(null);
+  
+  // Address state management
+  const [addresses, setAddresses] = useState([
+    {
+      id: 1,
+      label: 'Home',
+      isDefault: true,
+      name: user?.name || '',
+      address: '12, MG Road, Bangalore, Karnataka 560001',
+      phone: user?.phone || 'Phone not set',
+    },
+  ]);
+  
+  const [editingAddressId, setEditingAddressId] = useState(null);
+  const [showAddAddressForm, setShowAddAddressForm] = useState(false);
+  const [addressDraft, setAddressDraft] = useState(null);
+
   const [profile, setProfile] = useState({
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    address: '12, MG Road, Bangalore, Karnataka 560001',
     member: 'March 2024',
   });
   const [draft, setDraft] = useState({ ...profile });
@@ -59,6 +75,63 @@ export default function ProfilePage({ onNavigate, user, onLogout }) {
   const saveProfile = () => {
     setProfile({ ...draft });
     setEditing(false);
+  };
+
+  // Address management functions
+  const startEditAddress = (id) => {
+    const addr = addresses.find(a => a.id === id);
+    setAddressDraft({ ...addr });
+    setEditingAddressId(id);
+  };
+
+  const startAddAddress = () => {
+    setAddressDraft({
+      id: Date.now(),
+      label: '',
+      name: profile.name,
+      address: '',
+      phone: profile.phone,
+      isDefault: false,
+    });
+    setShowAddAddressForm(true);
+  };
+
+  const saveAddress = () => {
+    if (!addressDraft.label.trim() || !addressDraft.address.trim()) {
+      alert('Please fill in all fields');
+      return;
+    }
+    
+    if (editingAddressId) {
+      setAddresses(prev =>
+        prev.map(a => (a.id === editingAddressId ? addressDraft : a))
+      );
+      setEditingAddressId(null);
+    } else {
+      setAddresses(prev => [...prev, addressDraft]);
+      setShowAddAddressForm(false);
+    }
+    setAddressDraft(null);
+  };
+
+  const cancelAddressEdit = () => {
+    setEditingAddressId(null);
+    setShowAddAddressForm(false);
+    setAddressDraft(null);
+  };
+
+  const setDefaultAddress = (id) => {
+    setAddresses(prev =>
+      prev.map(a => ({ ...a, isDefault: a.id === id }))
+    );
+  };
+
+  const deleteAddress = (id) => {
+    if (addresses.find(a => a.id === id).isDefault && addresses.length > 1) {
+      alert('Cannot delete default address. Set another as default first.');
+      return;
+    }
+    setAddresses(prev => prev.filter(a => a.id !== id));
   };
 
   const initials = profile.name
@@ -378,25 +451,315 @@ export default function ProfilePage({ onNavigate, user, onLogout }) {
                 <p style={{ fontSize: 14, color: '#9ca3af' }}>Manage your saved delivery addresses</p>
               </div>
 
-              <div style={{ background: 'white', borderRadius: 20, padding: '1.75rem', boxShadow: '0 2px 20px rgba(0,0,0,0.06)', border: '2px solid #22c55e', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: 16, right: 16, background: '#16a34a', color: 'white', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.05em' }}>DEFAULT</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Home</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginBottom: 4 }}>{profile.name}</div>
-                <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.7 }}>
-                  {profile.address}<br />
-                  India &middot; {profile.phone || 'Phone not set'}
-                </div>
-                <button style={{ marginTop: '1rem', padding: '8px 18px', border: '1.5px solid #16a34a', borderRadius: 8, background: 'transparent', color: '#16a34a', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
-                  Edit Address
-                </button>
+              {/* Address list */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {addresses.map(addr => (
+                  <div
+                    key={addr.id}
+                    style={{
+                      background: 'white',
+                      borderRadius: 20,
+                      padding: '1.75rem',
+                      boxShadow: '0 2px 20px rgba(0,0,0,0.06)',
+                      border: addr.isDefault ? '2px solid #22c55e' : '1px solid #e5e7eb',
+                      position: 'relative',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {addr.isDefault && (
+                      <div style={{
+                        position: 'absolute',
+                        top: 16,
+                        right: 16,
+                        background: '#16a34a',
+                        color: 'white',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        padding: '3px 10px',
+                        borderRadius: 20,
+                        letterSpacing: '0.05em',
+                      }}>
+                        DEFAULT
+                      </div>
+                    )}
+
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      {addr.label}
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginBottom: 4 }}>
+                      {addr.name}
+                    </div>
+                    <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.7, marginBottom: '1rem' }}>
+                      {addr.address}<br />
+                      India &middot; {addr.phone}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => startEditAddress(addr.id)}
+                        id={`edit-address-${addr.id}`}
+                        style={{
+                          padding: '8px 18px',
+                          border: '1.5px solid #16a34a',
+                          borderRadius: 8,
+                          background: 'transparent',
+                          color: '#16a34a',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontFamily: 'Inter, sans-serif',
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#f0fdf4'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        Edit
+                      </button>
+
+                      {!addr.isDefault && (
+                        <button
+                          onClick={() => setDefaultAddress(addr.id)}
+                          style={{
+                            padding: '8px 18px',
+                            border: '1.5px solid #d1d5db',
+                            borderRadius: 8,
+                            background: 'transparent',
+                            color: '#6b7280',
+                            fontSize: 13,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            fontFamily: 'Inter, sans-serif',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = '#16a34a'; e.currentTarget.style.color = '#16a34a'; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.color = '#6b7280'; }}
+                        >
+                          Set as Default
+                        </button>
+                      )}
+
+                      {addresses.length > 1 && (
+                        <button
+                          onClick={() => deleteAddress(addr.id)}
+                          style={{
+                            padding: '8px 18px',
+                            border: '1.5px solid #fecaca',
+                            borderRadius: 8,
+                            background: 'transparent',
+                            color: '#dc2626',
+                            fontSize: 13,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            fontFamily: 'Inter, sans-serif',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <button style={{ background: 'white', borderRadius: 20, padding: '1.5rem', boxShadow: '0 2px 20px rgba(0,0,0,0.04)', border: '2px dashed #d1fae5', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, color: '#16a34a', fontWeight: 600, fontSize: 15, fontFamily: 'Inter, sans-serif', transition: 'all 0.2s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#22c55e'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#d1fae5'; }}
-              >
-                + Add New Address
-              </button>
+              {/* Add new address button */}
+              {!showAddAddressForm && editingAddressId === null && (
+                <button
+                  onClick={startAddAddress}
+                  id="add-address-btn"
+                  style={{
+                    background: 'white',
+                    borderRadius: 20,
+                    padding: '1.5rem',
+                    boxShadow: '0 2px 20px rgba(0,0,0,0.04)',
+                    border: '2px dashed #d1fae5',
+                    cursor: 'pointer',
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 10,
+                    color: '#16a34a',
+                    fontWeight: 600,
+                    fontSize: 15,
+                    fontFamily: 'Inter, sans-serif',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#f0fdf4';
+                    e.currentTarget.style.borderColor = '#22c55e';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.borderColor = '#d1fae5';
+                  }}
+                >
+                  + Add New Address
+                </button>
+              )}
+
+              {/* Address edit form */}
+              {(showAddAddressForm || editingAddressId !== null) && addressDraft && (
+                <div style={{
+                  background: 'white',
+                  borderRadius: 20,
+                  padding: '2rem',
+                  boxShadow: '0 2px 20px rgba(0,0,0,0.06)',
+                  border: '1px solid #f3f4f6',
+                }}>
+                  <h3 style={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: '#0a0f0d',
+                    marginBottom: '1.5rem',
+                  }}>
+                    {editingAddressId ? 'Edit Address' : 'Add New Address'}
+                  </h3>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: '#9ca3af',
+                        marginBottom: 6,
+                      }}>
+                        Address Label (e.g., Home, Office)
+                      </label>
+                      <input
+                        type="text"
+                        value={addressDraft.label}
+                        onChange={e => setAddressDraft(p => ({ ...p, label: e.target.value }))}
+                        id="address-label"
+                        placeholder="Enter label"
+                        style={inputCls}
+                        onFocus={e => e.target.style.borderColor = '#16a34a'}
+                        onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: '#9ca3af',
+                        marginBottom: 6,
+                      }}>
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={addressDraft.name}
+                        onChange={e => setAddressDraft(p => ({ ...p, name: e.target.value }))}
+                        id="address-name"
+                        placeholder="Enter full name"
+                        style={inputCls}
+                        onFocus={e => e.target.style.borderColor = '#16a34a'}
+                        onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+                      />
+                    </div>
+
+                    <div style={{ gridColumn: '1 / 3' }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: '#9ca3af',
+                        marginBottom: 6,
+                      }}>
+                        Street Address
+                      </label>
+                      <input
+                        type="text"
+                        value={addressDraft.address}
+                        onChange={e => setAddressDraft(p => ({ ...p, address: e.target.value }))}
+                        id="address-street"
+                        placeholder="e.g., 123 Main Street, City, State, Pincode"
+                        style={inputCls}
+                        onFocus={e => e.target.style.borderColor = '#16a34a'}
+                        onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: '#9ca3af',
+                        marginBottom: 6,
+                      }}>
+                        Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        value={addressDraft.phone}
+                        onChange={e => setAddressDraft(p => ({ ...p, phone: e.target.value }))}
+                        id="address-phone"
+                        placeholder="Enter phone number"
+                        style={inputCls}
+                        onFocus={e => e.target.style.borderColor = '#16a34a'}
+                        onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={cancelAddressEdit}
+                      style={{
+                        padding: '10px 20px',
+                        background: '#f3f4f6',
+                        border: 'none',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        color: '#6b7280',
+                        fontFamily: 'Inter, sans-serif',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#e5e7eb'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#f3f4f6'}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={saveAddress}
+                      id="save-address-btn"
+                      style={{
+                        padding: '10px 22px',
+                        background: 'linear-gradient(135deg, #16a34a, #22c55e)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontFamily: 'Inter, sans-serif',
+                        boxShadow: '0 4px 15px rgba(34,197,94,0.3)',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                      onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                    >
+                      {editingAddressId ? 'Update Address' : 'Add Address'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

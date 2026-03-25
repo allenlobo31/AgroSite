@@ -1,5 +1,9 @@
 import { useState } from 'react';
 
+// Badge class mapping (outside component for optimization)
+const BADGE_CLASS = { organic: 'badge-organic', sale: 'badge-sale', new: 'badge-new' };
+const STAR_ARRAY = [1, 2, 3, 4, 5]; // Reuse to avoid recreation on every render
+
 export const ALL_PRODUCTS = [
     {
         id: 1, name: 'Organic Fuji Apples', category: 'Fruits',
@@ -48,7 +52,7 @@ const CATEGORIES = ['All', 'Fruits', 'Vegetables', 'Seeds', 'Tools', 'Pantry', '
 function StarRating({ rating }) {
     return (
         <div className="stars">
-            {[1, 2, 3, 4, 5].map(i => (
+            {STAR_ARRAY.map(i => (
                 <span key={i} style={{ color: i <= Math.round(rating) ? '#f59e0b' : '#e5e7eb' }}>★</span>
             ))}
         </div>
@@ -57,21 +61,10 @@ function StarRating({ rating }) {
 
 export default function Products({ onAddToCart, onProductClick }) {
     const [activeCategory, setActiveCategory] = useState('All');
-    const [wishlist, setWishlist] = useState(new Set());
 
     const filtered = activeCategory === 'All'
         ? ALL_PRODUCTS
         : ALL_PRODUCTS.filter(p => p.category === activeCategory);
-
-    const toggleWishlist = (id) => {
-        setWishlist(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
-            return next;
-        });
-    };
-
-    const badgeClass = { organic: 'badge-organic', sale: 'badge-sale', new: 'badge-new' };
 
     return (
         <section className="section products-section" id="products">
@@ -117,7 +110,7 @@ export default function Products({ onAddToCart, onProductClick }) {
                                         e.target.parentNode.textContent = product.emoji;
                                     }}
                                 />
-                                <span className={`product-badge ${badgeClass[product.badge]}`}>
+                                <span className={`product-badge ${BADGE_CLASS[product.badge]}`}>
                                     {product.badge === 'organic' ? 'Organic' : product.badge === 'sale' ? 'Sale' : 'New'}
                                 </span>
 
