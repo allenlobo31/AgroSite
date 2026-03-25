@@ -50,25 +50,7 @@ export default function Hero() {
                 {/* ── LEFT: Text ── */}
                 <div style={{ flex: '0 0 48%', maxWidth: 520 }}>
 
-                    {/* Badge */}
-                    <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 8,
-                        background: 'rgba(251,191,36,0.15)',
-                        border: '1px solid rgba(251,191,36,0.35)',
-                        color: '#fbbf24',
-                        padding: '5px 14px', borderRadius: 25,
-                        fontSize: 12, fontWeight: 600, letterSpacing: '0.08em',
-                        textTransform: 'uppercase', marginBottom: '1.5rem',
-                        animation: 'fadeInUp 0.6s ease both',
-                    }}>
-                        <span style={{
-                            width: 7, height: 7, borderRadius: '50%',
-                            background: '#fbbf24',
-                            animation: 'pulse 2s infinite',
-                        }} />
-                        Checking the harvest
-                    </div>
-
+                    
                     {/* Headline */}
                     <h1 style={{
                         fontFamily: "'Playfair Display', Georgia, serif",
@@ -91,7 +73,7 @@ export default function Hero() {
                         marginBottom: '1.75rem',
                         animation: 'fadeInUp 0.7s 0.2s ease both',
                     }}>
-                        Premium organic produce, seeds &amp; farming essentials — sourced
+                        Premium organic produce, seeds &amp; farming essentials  sourced
                         directly from certified farms and delivered fresh to your doorstep.
                     </p>
 
@@ -162,9 +144,8 @@ export default function Hero() {
                             animation: 'floatBadge 4s ease-in-out infinite',
                             boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
                         }}>
-                            <span style={{ fontSize: 20 }}>🌿</span>
                             <div>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: 'white', lineHeight: 1.2 }}>100% Organic</div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: 'white', lineHeight: 1.2 }}>100% Original</div>
                                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>Certified</div>
                             </div>
                         </div>
@@ -180,7 +161,6 @@ export default function Hero() {
                             animation: 'floatBadge 4s ease-in-out infinite 1.5s',
                             boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
                         }}>
-                            <span style={{ fontSize: 20 }}>⭐</span>
                             <div>
                                 <div style={{ fontSize: 12, fontWeight: 700, color: 'white', lineHeight: 1.2 }}>4.9 Rating</div>
                                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>50K+ happy customers</div>
