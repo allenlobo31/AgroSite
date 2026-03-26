@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /* ── Format date helper ── */
 const formatDate = (date) => {
@@ -54,7 +54,7 @@ const statusColors = {
   Cancelled: { bg: '#fef2f2', text: '#dc2626', dot: '#ef4444' },
 };
 
-export default function ProfilePage({ onNavigate, user, onLogout }) {
+export default function ProfilePage({ onNavigate, user, onLogout, onUserUpdate }) {
   const [activeTab, setActiveTab] = useState('profile');
   const [editing, setEditing] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState(null);
@@ -64,6 +64,15 @@ export default function ProfilePage({ onNavigate, user, onLogout }) {
   
   // Address state management - initialize with user's initial address if provided
   const [addresses, setAddresses] = useState(() => {
+    if (Array.isArray(user?.savedAddresses) && user.savedAddresses.length > 0) {
+      const hasDefault = user.savedAddresses.some((addr) => addr.isDefault);
+      return user.savedAddresses.map((addr, index) => ({
+        ...addr,
+        id: addr.id ?? Date.now() + index,
+        isDefault: hasDefault ? addr.isDefault : index === 0,
+      }));
+    }
+
     const defaultAddr = {
       id: 1,
       label: 'Home',
@@ -91,6 +100,28 @@ export default function ProfilePage({ onNavigate, user, onLogout }) {
     member: memberSinceFormatted,
   });
   const [draft, setDraft] = useState({ ...profile });
+
+  useEffect(() => {
+    if (!onUserUpdate) return;
+
+    const fallbackAddress = {
+      id: 1,
+      label: 'Home',
+      isDefault: true,
+      name: profile.name,
+      address: user?.address || '',
+      phone: profile.phone,
+    };
+
+    const selectedDefault = addresses.find((addr) => addr.isDefault) || addresses[0] || fallbackAddress;
+
+    onUserUpdate({
+      name: profile.name,
+      phone: profile.phone,
+      address: selectedDefault.address,
+      savedAddresses: addresses,
+    });
+  }, [addresses, onUserUpdate, profile.name, profile.phone, user?.address]);
 
   const saveProfile = () => {
     setProfile({ ...draft });

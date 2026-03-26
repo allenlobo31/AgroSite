@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-export default function CartSidebar({ isOpen, onClose, cartItems, onUpdateQty, onRemove }) {
+export default function CartSidebar({ isOpen, onClose, cartItems, onUpdateQty, onRemove, onCheckout }) {
     // Prevent body scroll when open
     useEffect(() => {
         if (isOpen) {
@@ -98,7 +98,7 @@ export default function CartSidebar({ isOpen, onClose, cartItems, onUpdateQty, o
                                 </div>
                             </div>
 
-                            <button className="checkout-btn" id="checkout-btn">
+                            <button className="checkout-btn" id="checkout-btn" onClick={onCheckout}>
                                 Checkout — ${subtotal.toFixed(2)} 🌿
                             </button>
                             <button
