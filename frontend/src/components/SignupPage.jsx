@@ -3,11 +3,47 @@ import { RightPanel } from './LoginPage';
 
 export default function SignupPage({ onNavigate, onLogin }) {
     const [showPw, setShowPw] = useState(false);
-    const [form, setForm] = useState({ name: '', email: '', password: '' });
+    const [form, setForm] = useState({ name: '', email: '', password: '', phone: '' });
+    const [errors, setErrors] = useState({});
+
+    const handlePhoneChange = (value) => {
+        // Only allow digits
+        const cleaned = value.replace(/\D/g, '');
+        setForm(p => ({ ...p, phone: cleaned }));
+        // Clear phone error when user corrects it
+        if (cleaned.length >= 10 && errors.phone) {
+            setErrors(p => ({ ...p, phone: '' }));
+        }
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onLogin({ name: form.name.trim() || form.email.split('@')[0], email: form.email, phone: '' });
+        const newErrors = {};
+        
+        if (!form.name) {
+            newErrors.name = 'Name is required';
+        }
+        if (!form.email) {
+            newErrors.email = 'Email is required';
+        }
+        if (!form.password) {
+            newErrors.password = 'Password is required';
+        }
+        if (form.phone && form.phone.length < 10) {
+            newErrors.phone = 'Phone number must be at least 10 digits';
+        }
+        
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+        
+        onLogin({
+            name: form.name.trim() || form.email.split('@')[0],
+            email: form.email,
+            phone: form.phone,
+            memberSince: new Date(),
+        });
     };
 
     const inputStyle = {
@@ -96,24 +132,36 @@ export default function SignupPage({ onNavigate, onLogin }) {
                             type="text"
                             placeholder="Full name"
                             value={form.name}
-                            onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                            onChange={e => {
+                                setForm(p => ({ ...p, name: e.target.value }));
+                                if (e.target.value && errors.name) {
+                                    setErrors(p => ({ ...p, name: '' }));
+                                }
+                            }}
                             required
-                            style={inputStyle}
-                            onFocus={e => e.target.style.borderColor = '#16a34a'}
-                            onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+                            style={{ ...inputStyle, border: errors.name ? '1.5px solid #ef4444' : '1.5px solid #e5e7eb' }}
+                            onFocus={e => e.target.style.borderColor = errors.name ? '#ef4444' : '#16a34a'}
+                            onBlur={e => e.target.style.borderColor = errors.name ? '#ef4444' : '#e5e7eb'}
                         />
+                        {errors.name && <p style={{ color: '#ef4444', fontSize: 12, margin: '6px 0 0 0', fontWeight: 500 }}>{errors.name}</p>}
 
                         <input
                             id="signup-email"
                             type="email"
                             placeholder="Email address"
                             value={form.email}
-                            onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                            onChange={e => {
+                                setForm(p => ({ ...p, email: e.target.value }));
+                                if (e.target.value && errors.email) {
+                                    setErrors(p => ({ ...p, email: '' }));
+                                }
+                            }}
                             required
-                            style={inputStyle}
-                            onFocus={e => e.target.style.borderColor = '#16a34a'}
-                            onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+                            style={{ ...inputStyle, border: errors.email ? '1.5px solid #ef4444' : '1.5px solid #e5e7eb' }}
+                            onFocus={e => e.target.style.borderColor = errors.email ? '#ef4444' : '#16a34a'}
+                            onBlur={e => e.target.style.borderColor = errors.email ? '#ef4444' : '#e5e7eb'}
                         />
+                        {errors.email && <p style={{ color: '#ef4444', fontSize: 12, margin: '6px 0 0 0', fontWeight: 500 }}>{errors.email}</p>}
 
                         <div style={{ position: 'relative' }}>
                             <input
@@ -121,11 +169,16 @@ export default function SignupPage({ onNavigate, onLogin }) {
                                 type={showPw ? 'text' : 'password'}
                                 placeholder="Create password"
                                 value={form.password}
-                                onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                                onChange={e => {
+                                    setForm(p => ({ ...p, password: e.target.value }));
+                                    if (e.target.value && errors.password) {
+                                        setErrors(p => ({ ...p, password: '' }));
+                                    }
+                                }}
                                 required
-                                style={{ ...inputStyle, paddingRight: 48 }}
-                                onFocus={e => e.target.style.borderColor = '#16a34a'}
-                                onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+                                style={{ ...inputStyle, paddingRight: 48, border: errors.password ? '1.5px solid #ef4444' : '1.5px solid #e5e7eb' }}
+                                onFocus={e => e.target.style.borderColor = errors.password ? '#ef4444' : '#16a34a'}
+                                onBlur={e => e.target.style.borderColor = errors.password ? '#ef4444' : '#e5e7eb'}
                             />
                             <button type="button" onClick={() => setShowPw(p => !p)} style={{
                                 position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
@@ -133,9 +186,26 @@ export default function SignupPage({ onNavigate, onLogin }) {
                                 fontSize: 16, color: '#9ca3af', lineHeight: 1,
                             }}>{showPw ? '🙈' : '👁️'}</button>
                         </div>
+                        {errors.password && <p style={{ color: '#ef4444', fontSize: 12, margin: '6px 0 0 0', fontWeight: 500 }}>{errors.password}</p>}
+
+                        <div>
+                            <input
+                                id="signup-phone"
+                                type="tel"
+                                placeholder="Phone number (10+ digits)"
+                                value={form.phone}
+                                onChange={e => handlePhoneChange(e.target.value)}
+                                style={{ ...inputStyle, border: errors.phone ? '1.5px solid #ef4444' : '1.5px solid #e5e7eb' }}
+                                onFocus={e => e.target.style.borderColor = errors.phone ? '#ef4444' : '#16a34a'}
+                                onBlur={e => e.target.style.borderColor = errors.phone ? '#ef4444' : '#e5e7eb'}
+                            />
+                            {errors.phone && <p style={{ color: '#ef4444', fontSize: 12, margin: '6px 0 0 0', fontWeight: 500 }}>{errors.phone}</p>}
+                        </div>
+
+
 
                         {/* Password strength hint */}
-                        {form.password.length > 0 && (
+                        {form.password.length > 0 && !errors.password && (
                             <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                                 {[1, 2, 3, 4].map(i => (
                                     <div key={i} style={{

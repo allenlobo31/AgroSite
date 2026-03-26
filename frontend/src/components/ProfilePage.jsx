@@ -1,40 +1,51 @@
 import { useState } from 'react';
 
-/* ── Mock past orders ── */
-const MOCK_ORDERS = [
-  {
-    id: 'ORD-2024-001',
-    date: 'Mar 20, 2024',
-    status: 'Delivered',
-    total: 34.96,
-    items: [
-      { name: 'Organic Fuji Apples', qty: 2, price: 4.99 },
-      { name: 'Raw Wildflower Honey', qty: 1, price: 12.99 },
-      { name: 'Baby Spinach Leaves', qty: 4, price: 2.99 },
-    ],
-  },
-  {
-    id: 'ORD-2024-002',
-    date: 'Mar 15, 2024',
-    status: 'Delivered',
-    total: 52.47,
-    items: [
-      { name: 'Heirloom Seed Kit', qty: 1, price: 24.99 },
-      { name: 'Farm Fresh Carrots', qty: 3, price: 2.49 },
-      { name: 'Vine Ripened Tomatoes', qty: 5, price: 3.49 },
-    ],
-  },
-  {
-    id: 'ORD-2024-003',
-    date: 'Mar 8, 2024',
-    status: 'Processing',
-    total: 64.98,
-    items: [
-      { name: 'Premium Garden Tools Set', qty: 1, price: 49.99 },
-      { name: 'Organic Compost Mix', qty: 1, price: 14.99 },
-    ],
-  },
-];
+/* ── Format date helper ── */
+const formatDate = (date) => {
+  if (!date) return 'Not set';
+  const d = new Date(date);
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+/* ── Generate mock orders with relative dates ── */
+const generateMockOrders = () => {
+  const today = new Date();
+  
+  return [
+    {
+      id: 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+      date: formatDate(new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000)), // 5 days ago
+      status: 'Delivered',
+      total: 34.96,
+      items: [
+        { name: 'Organic Fuji Apples', qty: 2, price: 4.99 },
+        { name: 'Raw Wildflower Honey', qty: 1, price: 12.99 },
+        { name: 'Baby Spinach Leaves', qty: 4, price: 2.99 },
+      ],
+    },
+    {
+      id: 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+      date: formatDate(new Date(today.getTime() - 12 * 24 * 60 * 60 * 1000)), // 12 days ago
+      status: 'Delivered',
+      total: 52.47,
+      items: [
+        { name: 'Heirloom Seed Kit', qty: 1, price: 24.99 },
+        { name: 'Farm Fresh Carrots', qty: 3, price: 2.49 },
+        { name: 'Vine Ripened Tomatoes', qty: 5, price: 3.49 },
+      ],
+    },
+    {
+      id: 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+      date: formatDate(new Date(today.getTime() - 18 * 24 * 60 * 60 * 1000)), // 18 days ago
+      status: 'Processing',
+      total: 64.98,
+      items: [
+        { name: 'Premium Garden Tools Set', qty: 1, price: 49.99 },
+        { name: 'Organic Compost Mix', qty: 1, price: 14.99 },
+      ],
+    },
+  ];
+};
 
 const statusColors = {
   Delivered: { bg: '#f0fdf4', text: '#16a34a', dot: '#22c55e' },
@@ -48,27 +59,36 @@ export default function ProfilePage({ onNavigate, user, onLogout }) {
   const [editing, setEditing] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState(null);
   
-  // Address state management
-  const [addresses, setAddresses] = useState([
-    {
+  // Generate mock orders from member signup date
+  const mockOrders = generateMockOrders();
+  
+  // Address state management - initialize with user's initial address if provided
+  const [addresses, setAddresses] = useState(() => {
+    const defaultAddr = {
       id: 1,
       label: 'Home',
       isDefault: true,
       name: user?.name || '',
-      address: '12, MG Road, Bangalore, Karnataka 560001',
-      phone: user?.phone || 'Phone not set',
-    },
-  ]);
+      address: user?.address || '',
+      phone: user?.phone || '',
+    };
+    return user?.address ? [defaultAddr] : [{ ...defaultAddr, address: '' }];
+  });
   
   const [editingAddressId, setEditingAddressId] = useState(null);
   const [showAddAddressForm, setShowAddAddressForm] = useState(false);
   const [addressDraft, setAddressDraft] = useState(null);
 
+  // Format membership date
+  const memberSinceFormatted = user?.memberSince
+    ? new Date(user.memberSince).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+    : 'March 2024';
+
   const [profile, setProfile] = useState({
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    member: 'March 2024',
+    member: memberSinceFormatted,
   });
   const [draft, setDraft] = useState({ ...profile });
 
@@ -132,6 +152,11 @@ export default function ProfilePage({ onNavigate, user, onLogout }) {
       return;
     }
     setAddresses(prev => prev.filter(a => a.id !== id));
+  };
+
+  // Phone input validation - only digits
+  const handlePhoneChange = (value) => {
+    return value.replace(/\D/g, '');
   };
 
   const initials = profile.name
@@ -336,7 +361,10 @@ export default function ProfilePage({ onNavigate, user, onLogout }) {
                           id={`profile-${field.key}`}
                           type={field.type}
                           value={draft[field.key]}
-                          onChange={e => setDraft(p => ({ ...p, [field.key]: e.target.value }))}
+                          onChange={e => {
+                            const value = field.key === 'phone' ? handlePhoneChange(e.target.value) : e.target.value;
+                            setDraft(p => ({ ...p, [field.key]: value }));
+                          }}
                           style={inputCls}
                           onFocus={e => e.target.style.borderColor = '#16a34a'}
                           onBlur={e => e.target.style.borderColor = '#e5e7eb'}
@@ -354,9 +382,9 @@ export default function ProfilePage({ onNavigate, user, onLogout }) {
               {/* Stats row */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem' }}>
                 {[
-                  { label: 'Total Orders', value: MOCK_ORDERS.length, color: '#16a34a' },
-                  { label: 'Total Spent', value: `$${MOCK_ORDERS.reduce((s, o) => s + o.total, 0).toFixed(2)}`, color: '#7c3aed' },
-                  { label: 'Items Purchased', value: MOCK_ORDERS.flatMap(o => o.items).reduce((s, i) => s + i.qty, 0), color: '#ea580c' },
+                  { label: 'Total Orders', value: mockOrders.length, color: '#16a34a' },
+                  { label: 'Total Spent', value: `$${mockOrders.reduce((s, o) => s + o.total, 0).toFixed(2)}`, color: '#7c3aed' },
+                  { label: 'Items Purchased', value: mockOrders.flatMap(o => o.items).reduce((s, i) => s + i.qty, 0), color: '#ea580c' },
                 ].map(stat => (
                   <div key={stat.label} style={{ background: 'white', borderRadius: 16, padding: '1.5rem', textAlign: 'center', boxShadow: '0 2px 16px rgba(0,0,0,0.05)', border: '1px solid #f3f4f6' }}>
                     <div style={{ fontSize: 28, fontWeight: 800, color: stat.color, marginBottom: 4 }}>{stat.value}</div>
@@ -372,10 +400,10 @@ export default function ProfilePage({ onNavigate, user, onLogout }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
                 <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 28, fontWeight: 700, color: '#0a0f0d', marginBottom: 4, letterSpacing: '-0.5px' }}>Past Orders</h1>
-                <p style={{ fontSize: 14, color: '#9ca3af' }}>{MOCK_ORDERS.length} orders in your history</p>
+                <p style={{ fontSize: 14, color: '#9ca3af' }}>{mockOrders.length} orders in your history</p>
               </div>
 
-              {MOCK_ORDERS.map(order => {
+              {mockOrders.map(order => {
                 const s = statusColors[order.status] || statusColors.Delivered;
                 const open = expandedOrder === order.id;
                 return (
@@ -701,7 +729,7 @@ export default function ProfilePage({ onNavigate, user, onLogout }) {
                         color: '#9ca3af',
                         marginBottom: 6,
                       }}>
-                        Phone Number
+                        Phone NumberhandlePhoneChange(e.target.value)
                       </label>
                       <input
                         type="tel"
