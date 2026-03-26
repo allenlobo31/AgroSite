@@ -289,13 +289,13 @@ export default function CheckoutPage({ onNavigate, user, cartItems, subtotal, on
               {cartSummary.map((item) => (
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 14, color: '#334155' }}>
                   <span>{item.name} x{item.qty}</span>
-                  <strong>${item.lineTotal.toFixed(2)}</strong>
+                  <strong>₹{item.lineTotal.toFixed(2)}</strong>
                 </div>
               ))}
 
               <div style={{ borderTop: '1px solid #dcfce7', paddingTop: 10, marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontWeight: 700, color: '#0f172a' }}>Total</span>
-                <span style={{ fontWeight: 800, color: '#16a34a', fontSize: 18 }}>${subtotal.toFixed(2)}</span>
+                <span style={{ fontWeight: 800, color: '#16a34a', fontSize: 18 }}>₹{subtotal.toFixed(2)}</span>
               </div>
             </div>
           )}

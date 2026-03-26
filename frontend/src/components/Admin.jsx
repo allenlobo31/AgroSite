@@ -1,14 +1,10 @@
 import { useState } from 'react';
 import './Admin.css';
+import { ADMIN_SEED_PRODUCTS, PRODUCT_FORM_CATEGORIES } from './productsData';
 
 export default function Admin({ onNavigate, user, onLogout, orders = [], onAcceptOrder, onRejectOrder }) {
   const [activeTab, setActiveTab] = useState('products');
-  const [products, setProducts] = useState([
-    { id: 1, name: 'Tomatoes', price: 50, stock: 100, category: 'Vegetables' },
-    { id: 2, name: 'Potatoes', price: 30, stock: 250, category: 'Vegetables' },
-    { id: 3, name: 'Carrots', price: 40, stock: 150, category: 'Vegetables' },
-    { id: 4, name: 'Apples', price: 80, stock: 200, category: 'Fruits' },
-  ]);
+  const [products, setProducts] = useState(ADMIN_SEED_PRODUCTS);
 
   const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({ name: '', price: '', stock: '', category: '' });
@@ -150,10 +146,9 @@ export default function Admin({ onNavigate, user, onLogout, orders = [], onAccep
                   required
                 >
                   <option value="">Select category</option>
-                  <option value="Vegetables">Vegetables</option>
-                  <option value="Fruits">Fruits</option>
-                  <option value="Grains">Grains</option>
-                  <option value="Dairy">Dairy</option>
+                  {PRODUCT_FORM_CATEGORIES.map((category) => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
                 </select>
               </div>
 
@@ -214,7 +209,7 @@ export default function Admin({ onNavigate, user, onLogout, orders = [], onAccep
                 <p><strong>Items:</strong> {order.items.join(', ')}</p>
                 {order.phone && <p><strong>Phone:</strong> {order.phone}</p>}
                 {order.address && <p><strong>Address:</strong> {order.address}</p>}
-                <p><strong>Total:</strong> ${order.total}</p>
+                <p><strong>Total:</strong> ₹{order.total}</p>
               </div>
 
               {order.status === 'pending' && (

@@ -15,6 +15,7 @@ import ProductDetailPage from './components/ProductDetailPage';
 import Admin from './components/Admin';
 import AdminLogin from './components/AdminLogin';
 import CheckoutPage from './components/CheckoutPage';
+import { INITIAL_ADMIN_ORDERS } from './components/productsData';
 
 // Toast notification
 function Toast({ message, onDone }) {
@@ -64,11 +65,7 @@ export default function App() {
       // Fall back to seed data when storage is unavailable or malformed.
     }
 
-    return [
-      { id: 101, customer: 'John Doe', items: ['Tomatoes', 'Potatoes'], total: 150, status: 'pending', date: '2026-03-26', phone: '9876543210', address: 'Lakeview Road, Pune' },
-      { id: 102, customer: 'Jane Smith', items: ['Carrots', 'Apples'], total: 240, status: 'pending', date: '2026-03-26', phone: '9123456780', address: 'Sunrise Colony, Mumbai' },
-      { id: 103, customer: 'Bob Johnson', items: ['Tomatoes'], total: 50, status: 'accepted', date: '2026-03-25', phone: '9988776655', address: 'Hill Park Street, Nashik' },
-    ];
+    return INITIAL_ADMIN_ORDERS;
   });
 
   useEffect(() => {

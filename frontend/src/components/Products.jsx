@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { ALL_PRODUCTS } from './productsData';
+import { ALL_PRODUCTS, PRODUCT_BADGE_LABELS, PRODUCT_CATEGORIES } from './productsData';
 
 // Badge class mapping (outside component for optimization)
 const BADGE_CLASS = { organic: 'badge-organic', sale: 'badge-sale', new: 'badge-new' };
 const STAR_ARRAY = [1, 2, 3, 4, 5]; // Reuse to avoid recreation on every render
-
-const CATEGORIES = ['All', 'Fruits', 'Vegetables', 'Seeds', 'Tools', 'Pantry', 'Fertilizers'];
 
 function StarRating({ rating }) {
     return (
@@ -33,7 +31,7 @@ export default function Products({ onAddToCart, onProductClick }) {
                         <h2 className="section-title" style={{ marginBottom: 0 }}>Our Best Products</h2>
                     </div>
                     <div className="categories-filter">
-                        {CATEGORIES.map(cat => (
+                        {PRODUCT_CATEGORIES.map(cat => (
                             <button
                                 key={cat}
                                 className={`cat-btn ${activeCategory === cat ? 'active' : ''}`}
@@ -69,7 +67,7 @@ export default function Products({ onAddToCart, onProductClick }) {
                                     }}
                                 />
                                 <span className={`product-badge ${BADGE_CLASS[product.badge]}`}>
-                                    {product.badge === 'organic' ? 'Organic' : product.badge === 'sale' ? 'Sale' : 'New'}
+                                    {PRODUCT_BADGE_LABELS[product.badge] || product.badge}
                                 </span>
 
                             </div>
@@ -83,9 +81,9 @@ export default function Products({ onAddToCart, onProductClick }) {
                                 </div>
                                 <div className="product-footer">
                                     <div className="product-price">
-                                        <span className="price-current">${product.price.toFixed(2)}</span>
+                                        <span className="price-current">₹{product.price.toFixed(2)}</span>
                                         {product.original && (
-                                            <span className="price-original">${product.original.toFixed(2)}</span>
+                                            <span className="price-original">₹{product.original.toFixed(2)}</span>
                                         )}
                                     </div>
                                     <button

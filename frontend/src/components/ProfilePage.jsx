@@ -1,51 +1,5 @@
 import { useEffect, useState } from 'react';
-
-/* ── Format date helper ── */
-const formatDate = (date) => {
-  if (!date) return 'Not set';
-  const d = new Date(date);
-  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-};
-
-/* ── Generate mock orders with relative dates ── */
-const generateMockOrders = () => {
-  const today = new Date();
-  
-  return [
-    {
-      id: 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-      date: formatDate(new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000)), // 5 days ago
-      status: 'Delivered',
-      total: 34.96,
-      items: [
-        { name: 'Organic Fuji Apples', qty: 2, price: 4.99 },
-        { name: 'Raw Wildflower Honey', qty: 1, price: 12.99 },
-        { name: 'Baby Spinach Leaves', qty: 4, price: 2.99 },
-      ],
-    },
-    {
-      id: 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-      date: formatDate(new Date(today.getTime() - 12 * 24 * 60 * 60 * 1000)), // 12 days ago
-      status: 'Delivered',
-      total: 52.47,
-      items: [
-        { name: 'Heirloom Seed Kit', qty: 1, price: 24.99 },
-        { name: 'Farm Fresh Carrots', qty: 3, price: 2.49 },
-        { name: 'Vine Ripened Tomatoes', qty: 5, price: 3.49 },
-      ],
-    },
-    {
-      id: 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-      date: formatDate(new Date(today.getTime() - 18 * 24 * 60 * 60 * 1000)), // 18 days ago
-      status: 'Processing',
-      total: 64.98,
-      items: [
-        { name: 'Premium Garden Tools Set', qty: 1, price: 49.99 },
-        { name: 'Organic Compost Mix', qty: 1, price: 14.99 },
-      ],
-    },
-  ];
-};
+import { PROFILE_MOCK_ORDERS } from './productsData';
 
 const statusColors = {
   Delivered: { bg: '#f0fdf4', text: '#16a34a', dot: '#22c55e' },
@@ -59,8 +13,7 @@ export default function ProfilePage({ onNavigate, user, onLogout, onUserUpdate }
   const [editing, setEditing] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState(null);
   
-  // Generate mock orders from member signup date
-  const mockOrders = generateMockOrders();
+  const mockOrders = PROFILE_MOCK_ORDERS;
   
   // Address state management - initialize with user's initial address if provided
   const [addresses, setAddresses] = useState(() => {
@@ -414,7 +367,7 @@ export default function ProfilePage({ onNavigate, user, onLogout, onUserUpdate }
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem' }}>
                 {[
                   { label: 'Total Orders', value: mockOrders.length, color: '#16a34a' },
-                  { label: 'Total Spent', value: `$${mockOrders.reduce((s, o) => s + o.total, 0).toFixed(2)}`, color: '#7c3aed' },
+                  { label: 'Total Spent', value: `₹${mockOrders.reduce((s, o) => s + o.total, 0).toFixed(2)}`, color: '#7c3aed' },
                   { label: 'Items Purchased', value: mockOrders.flatMap(o => o.items).reduce((s, i) => s + i.qty, 0), color: '#ea580c' },
                 ].map(stat => (
                   <div key={stat.label} style={{ background: 'white', borderRadius: 16, padding: '1.5rem', textAlign: 'center', boxShadow: '0 2px 16px rgba(0,0,0,0.05)', border: '1px solid #f3f4f6' }}>
@@ -462,7 +415,7 @@ export default function ProfilePage({ onNavigate, user, onLogout, onUserUpdate }
 
                       {/* Total */}
                       <div style={{ textAlign: 'right', minWidth: 70 }}>
-                        <div style={{ fontSize: 16, fontWeight: 700, color: '#16a34a' }}>${order.total.toFixed(2)}</div>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: '#16a34a' }}>₹{order.total.toFixed(2)}</div>
                       </div>
 
                       {/* Chevron */}
@@ -477,14 +430,14 @@ export default function ProfilePage({ onNavigate, user, onLogout, onUserUpdate }
                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.7rem 1rem', background: '#f9fafb', borderRadius: 10 }}>
                               <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#111827' }}>{item.name}</div>
                               <div style={{ fontSize: 12, color: '#9ca3af', minWidth: 50 }}>Qty: {item.qty}</div>
-                              <div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a' }}>${(item.price * item.qty).toFixed(2)}</div>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a' }}>₹{(item.price * item.qty).toFixed(2)}</div>
                             </div>
                           ))}
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px dashed #e5e7eb' }}>
                           <span style={{ fontSize: 13, color: '#6b7280' }}>Order Total (free shipping included)</span>
-                          <span style={{ fontSize: 18, fontWeight: 800, color: '#0a0f0d' }}>${order.total.toFixed(2)}</span>
+                          <span style={{ fontSize: 18, fontWeight: 800, color: '#0a0f0d' }}>₹{order.total.toFixed(2)}</span>
                         </div>
 
                         <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1rem' }}>

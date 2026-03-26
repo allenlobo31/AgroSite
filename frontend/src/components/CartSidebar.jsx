@@ -48,7 +48,7 @@ export default function CartSidebar({ isOpen, onClose, cartItems, onUpdateQty, o
                                     </div>
                                     <div className="cart-item-info">
                                         <div className="cart-item-name">{item.name}</div>
-                                        <div className="cart-item-price">${(item.price * item.qty).toFixed(2)}</div>
+                                        <div className="cart-item-price">₹{(item.price * item.qty).toFixed(2)}</div>
                                         <div className="cart-item-qty">
                                             <button
                                                 className="qty-btn"
@@ -81,7 +81,7 @@ export default function CartSidebar({ isOpen, onClose, cartItems, onUpdateQty, o
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                                     <span style={{ fontSize: 13, color: '#6b7280' }}>Subtotal ({cartItems.length} items)</span>
-                                    <span style={{ fontSize: 15, fontWeight: 700 }}>${subtotal.toFixed(2)}</span>
+                                    <span style={{ fontSize: 15, fontWeight: 700 }}>₹{subtotal.toFixed(2)}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                                     <span style={{ fontSize: 13, color: '#6b7280' }}>Shipping</span>
@@ -93,13 +93,13 @@ export default function CartSidebar({ isOpen, onClose, cartItems, onUpdateQty, o
                                 }}>
                                     <span style={{ fontSize: 15, fontWeight: 700 }}>Total</span>
                                     <span style={{ fontSize: 20, fontWeight: 800, color: '#16a34a' }}>
-                                        ${subtotal.toFixed(2)}
+                                        ₹{subtotal.toFixed(2)}
                                     </span>
                                 </div>
                             </div>
 
                             <button className="checkout-btn" id="checkout-btn" onClick={onCheckout}>
-                                Checkout — ${subtotal.toFixed(2)} 🌿
+                                Checkout — ₹{subtotal.toFixed(2)} 🌿
                             </button>
                             <button
                                 onClick={onClose}

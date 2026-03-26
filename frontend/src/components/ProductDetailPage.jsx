@@ -1,81 +1,12 @@
 import { useState } from 'react';
-import { ALL_PRODUCTS } from './productsData';
-
-/* ── Extended product details map ── */
-const PRODUCT_DETAILS = {
-  1: {
-    description: 'Hand-picked from certified organic orchards in Washington State, our Fuji Apples are naturally sweet with a satisfying crunch. Grown without synthetic pesticides and harvested at peak ripeness for maximum flavor and nutrition.',
-    highlights: ['Certified USDA Organic', 'No synthetic pesticides', 'Harvested at peak ripeness', 'Rich in fibre & Vitamin C'],
-    nutrition: { calories: 95, carbs: '25g', fibre: '4g', sugar: '19g', protein: '0.5g', vitC: '14%' },
-    origin: 'Washington State, USA',
-    weight: '1 kg pack',
-    shelf: '7–10 days (refrigerated)',
-    stock: 48,
-  },
-  2: {
-    description: 'Sun-ripened on the vine for a naturally sweet, tangy flavour. Our tomatoes are sourced from small-batch farms and arrive within 24 hours of harvest, ensuring maximum freshness in every bite.',
-    highlights: ['Vine-ripened for full flavour', 'No artificial ripening agents', 'Rich in lycopene & antioxidants', 'Harvested within 24 hours'],
-    nutrition: { calories: 18, carbs: '4g', fibre: '1g', sugar: '3g', protein: '1g', vitC: '28%' },
-    origin: 'Maharashtra, India',
-    weight: '500g pack',
-    shelf: '5–7 days (room temp)',
-    stock: 72,
-  },
-  3: {
-    description: 'Tender baby spinach leaves, harvested young for a mild flavour and silky texture. Perfect for salads, smoothies, or a quick sauté. Washed and packed within hours of harvest.',
-    highlights: ['Pre-washed, ready to eat', 'High in iron & folate', 'No wilting or yellowing', 'Packed within hours of harvest'],
-    nutrition: { calories: 7, carbs: '1g', fibre: '1g', sugar: '0g', protein: '1g', vitC: '15%' },
-    origin: 'Ooty, Tamil Nadu',
-    weight: '200g bag',
-    shelf: '5–6 days (refrigerated)',
-    stock: 34,
-  },
-  4: {
-    description: 'Crisp, vibrant carrots straight from family-run organic farms. Naturally sweet with earthy undertones, these are perfect for roasting, juicing, or snacking raw.',
-    highlights: ['High in beta-carotene', 'No wax coating', 'Farm-direct sourcing', 'Natural soil-to-shelf traceability'],
-    nutrition: { calories: 41, carbs: '10g', fibre: '3g', sugar: '5g', protein: '1g', vitC: '6%' },
-    origin: 'Pune, Maharashtra',
-    weight: '1 kg pack',
-    shelf: '14 days (refrigerated)',
-    stock: 60,
-  },
-  5: {
-    description: 'Sourced from free-range beehives in unpolluted wildflower meadows, this raw honey is unfiltered and unheated — preserving all its natural enzymes, antioxidants, and floral complexity.',
-    highlights: ['Raw & unfiltered', 'No added sugar or preservatives', 'Antibacterial properties', 'Cold-extracted to retain enzymes'],
-    nutrition: { calories: 64, carbs: '17g', fibre: '0g', sugar: '17g', protein: '0g', vitC: '0%' },
-    origin: 'Coorg, Karnataka',
-    weight: '500g jar',
-    shelf: '24 months (sealed)',
-    stock: 22,
-  },
-  6: {
-    description: 'A curated collection of heirloom, non-GMO seeds for the serious home gardener. Includes 12 varieties of vegetables, herbs, and flowers — all open-pollinated for seed saving year after year.',
-    highlights: ['12 seed varieties included', 'Non-GMO & open-pollinated', 'Germination rate >90%', 'Includes planting guide'],
-    nutrition: { calories: '-', carbs: '-', fibre: '-', sugar: '-', protein: '-', vitC: '-' },
-    origin: 'Sourced across India',
-    weight: '12 seed packets',
-    shelf: '2 years (cool, dry storage)',
-    stock: 15,
-  },
-  7: {
-    description: 'Professional-grade garden tools engineered for durability and comfort. The ergonomic handles reduce hand fatigue during extended use. Set includes trowel, transplanter, weeder, cultivator, and pruning shears.',
-    highlights: ['Stainless steel blades', 'Ergonomic rubber grip', '5-piece complete set', 'Rust & corrosion resistant'],
-    nutrition: { calories: '-', carbs: '-', fibre: '-', sugar: '-', protein: '-', vitC: '-' },
-    origin: 'Made in India',
-    weight: '1.2 kg set',
-    shelf: 'Multi-year lifespan',
-    stock: 8,
-  },
-  8: {
-    description: 'A rich blend of composted organic matter, vermicompost, and beneficial microbes. Conditions soil structure, boosts microbial activity, and delivers slow-release nutrients for lush, productive growth.',
-    highlights: ['100% organic inputs', 'Enriched with vermicompost', 'Improves soil water retention', 'Safe for edible plants'],
-    nutrition: { calories: '-', carbs: '-', fibre: '-', sugar: '-', protein: '-', vitC: '-' },
-    origin: 'Produced in Bengaluru',
-    weight: '5 kg bag',
-    shelf: '12 months (sealed)',
-    stock: 29,
-  },
-};
+import {
+  ALL_PRODUCTS,
+  NON_FOOD_CATEGORIES,
+  PRODUCT_BADGE_STYLES,
+  PRODUCT_DETAILS,
+  PRODUCT_REVIEW_DISTRIBUTION,
+  PRODUCT_SAMPLE_REVIEWS,
+} from './productsData';
 
 /* ── Star rating ── */
 const STAR_ARRAY = [1, 2, 3, 4, 5]; // Reuse array to avoid recreation on render
@@ -90,16 +21,9 @@ function Stars({ rating, size = 16 }) {
   );
 }
 
-/* ── Badge styling ── */
-const BADGE_STYLES = {
-  organic: { label: 'Organic', bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
-  sale:    { label: 'Sale',    bg: '#fef3c7', color: '#92400e', border: '#fde68a' },
-  new:     { label: 'New',     bg: '#eff6ff', color: '#1e40af', border: '#bfdbfe' },
-};
-
 /* ── Badge ── */
 function Badge({ type }) {
-  const s = BADGE_STYLES[type] || BADGE_STYLES.organic;
+  const s = PRODUCT_BADGE_STYLES[type] || PRODUCT_BADGE_STYLES.organic;
   return (
     <span style={{ padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>
       {s.label}
@@ -132,7 +56,7 @@ export default function ProductDetailPage({ productId, onNavigate, onAddToCart }
   }
 
   const discount = product.original ? Math.round((1 - product.price / product.original) * 100) : 0;
-  const isFood = !['Seeds', 'Tools', 'Fertilizers'].includes(product.category);
+  const isFood = !NON_FOOD_CATEGORIES.includes(product.category);
 
   const handleAddToCart = () => {
     for (let i = 0; i < qty; i++) onAddToCart(product);
@@ -245,12 +169,12 @@ export default function ProductDetailPage({ productId, onNavigate, onAddToCart }
             {/* Price */}
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem' }}>
               <span style={{ fontSize: 36, fontWeight: 800, color: '#0a0f0d', letterSpacing: '-1px' }}>
-                ${product.price.toFixed(2)}
+                ₹{product.price.toFixed(2)}
               </span>
               {product.original && (
                 <>
-                  <span style={{ fontSize: 20, color: '#9ca3af', textDecoration: 'line-through' }}>${product.original.toFixed(2)}</span>
-                  <span style={{ background: '#fef3c7', color: '#92400e', fontSize: 13, fontWeight: 700, padding: '2px 10px', borderRadius: 20 }}>Save ${(product.original - product.price).toFixed(2)}</span>
+                  <span style={{ fontSize: 20, color: '#9ca3af', textDecoration: 'line-through' }}>₹{product.original.toFixed(2)}</span>
+                  <span style={{ background: '#fef3c7', color: '#92400e', fontSize: 13, fontWeight: 700, padding: '2px 10px', borderRadius: 20 }}>Save ₹{(product.original - product.price).toFixed(2)}</span>
                 </>
               )}
             </div>
@@ -321,7 +245,7 @@ export default function ProductDetailPage({ productId, onNavigate, onAddToCart }
                 onMouseEnter={e => { if (!added) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(34,197,94,0.45)'; } }}
                 onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 6px 20px rgba(34,197,94,0.35)'; }}
               >
-                {added ? 'Added to Cart ✓' : `Add ${qty > 1 ? `${qty} ` : ''}to Cart — $${(product.price * qty).toFixed(2)}`}
+                {added ? 'Added to Cart ✓' : `Add ${qty > 1 ? `${qty} ` : ''}to Cart — ₹${(product.price * qty).toFixed(2)}`}
               </button>
             </div>
           </div>
@@ -392,8 +316,9 @@ export default function ProductDetailPage({ productId, onNavigate, onAddToCart }
                     <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>{product.reviews} reviews</div>
                   </div>
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    {[5, 4, 3, 2, 1].map(star => {
-                      const pct = star === 5 ? 72 : star === 4 ? 18 : star === 3 ? 7 : star === 2 ? 2 : 1;
+                    {PRODUCT_REVIEW_DISTRIBUTION.map((row) => {
+                      const star = row.star;
+                      const pct = row.percent;
                       return (
                         <div key={star} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                           <span style={{ fontSize: 12, color: '#6b7280', minWidth: 8 }}>{star}</span>
@@ -409,11 +334,7 @@ export default function ProductDetailPage({ productId, onNavigate, onAddToCart }
                 </div>
 
                 {/* Sample reviews */}
-                {[
-                  { name: 'Priya S.', stars: 5, date: 'Mar 18, 2024', text: `Absolutely love the quality! The ${product.name} were super fresh and exactly as described. Will definitely order again.` },
-                  { name: 'Rahul M.', stars: 4, date: 'Mar 10, 2024', text: 'Great product overall. Came well-packaged and arrived on time. Slight delay on delivery but the quality made up for it.' },
-                  { name: 'Ananya K.', stars: 5, date: 'Feb 28, 2024', text: 'Best quality I\'ve found online. The farm-fresh difference is noticeable compared to supermarket produce.' },
-                ].map((r, i) => (
+                {PRODUCT_SAMPLE_REVIEWS.map((r, i) => (
                   <div key={i} style={{ paddingBottom: '1.25rem', marginBottom: '1.25rem', borderBottom: i < 2 ? '1px solid #f3f4f6' : 'none' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -425,7 +346,7 @@ export default function ProductDetailPage({ productId, onNavigate, onAddToCart }
                       </div>
                       <span style={{ fontSize: 12, color: '#9ca3af' }}>{r.date}</span>
                     </div>
-                    <p style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.7, margin: 0 }}>{r.text}</p>
+                    <p style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.7, margin: 0 }}>{r.text.replace('{productName}', product.name)}</p>
                   </div>
                 ))}
               </div>
@@ -455,7 +376,7 @@ export default function ProductDetailPage({ productId, onNavigate, onAddToCart }
                     <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{p.category}</div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>{p.name}</div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: 16, fontWeight: 800, color: '#16a34a' }}>${p.price.toFixed(2)}</span>
+                      <span style={{ fontSize: 16, fontWeight: 800, color: '#16a34a' }}>₹{p.price.toFixed(2)}</span>
                       <Stars rating={p.rating} size={12} />
                     </div>
                   </div>
