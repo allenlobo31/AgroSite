@@ -34,6 +34,7 @@ function Toast({ message, onDone }) {
 export default function App() {
   const ADMIN_EMAIL = 'admin@agrosite';
   const ADMIN_PASSWORD = 'admin@agrosite';
+  const ORDERS_STORAGE_KEY = 'agrosite_orders';
 
   // ── Auth state ──
   const [user, setUser] = useState(null);
@@ -47,11 +48,23 @@ export default function App() {
   const [cartItems, setCartItems] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [toast, setToast] = useState(null);
-  const [orders, setOrders] = useState([
-    { id: 101, customer: 'John Doe', items: ['Tomatoes', 'Potatoes'], total: 150, status: 'pending', date: '2026-03-26', phone: '9876543210', address: 'Lakeview Road, Pune' },
-    { id: 102, customer: 'Jane Smith', items: ['Carrots', 'Apples'], total: 240, status: 'pending', date: '2026-03-26', phone: '9123456780', address: 'Sunrise Colony, Mumbai' },
-    { id: 103, customer: 'Bob Johnson', items: ['Tomatoes'], total: 50, status: 'accepted', date: '2026-03-25', phone: '9988776655', address: 'Hill Park Street, Nashik' },
-  ]);
+  const [orders, setOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem(ORDERS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // Fall back to seed data when storage is unavailable or malformed.
+    }
+
+    return [
+      { id: 101, customer: 'John Doe', items: ['Tomatoes', 'Potatoes'], total: 150, status: 'pending', date: '2026-03-26', phone: '9876543210', address: 'Lakeview Road, Pune' },
+      { id: 102, customer: 'Jane Smith', items: ['Carrots', 'Apples'], total: 240, status: 'pending', date: '2026-03-26', phone: '9123456780', address: 'Sunrise Colony, Mumbai' },
+      { id: 103, customer: 'Bob Johnson', items: ['Tomatoes'], total: 50, status: 'accepted', date: '2026-03-25', phone: '9988776655', address: 'Hill Park Street, Nashik' },
+    ];
+  });
 
   // ── Check URL for admin access ──
   useEffect(() => {
@@ -59,6 +72,10 @@ export default function App() {
       setPage('admin-login');
     }
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+  }, [orders, ORDERS_STORAGE_KEY]);
 
   const cartCount = cartItems.reduce((sum, it) => sum + it.qty, 0);
 
