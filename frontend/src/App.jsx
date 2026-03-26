@@ -15,7 +15,16 @@ import ProductDetailPage from './components/ProductDetailPage';
 import Admin from './components/Admin';
 import AdminLogin from './components/AdminLogin';
 import CheckoutPage from './components/CheckoutPage';
-import { INITIAL_ADMIN_ORDERS } from './components/productsData';
+import { ALL_PRODUCTS, INITIAL_ADMIN_ORDERS } from './components/productsData';
+import {
+  fetchProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  placeOrder,
+  fetchOrders,
+  updateOrderStatus,
+} from './services/backendApi';
 
 // Toast notification
 function Toast({ message, onDone }) {
@@ -35,7 +44,6 @@ function Toast({ message, onDone }) {
 export default function App() {
   const ADMIN_EMAIL = 'admin@agrosite';
   const ADMIN_PASSWORD = 'admin@agrosite';
-  const ORDERS_STORAGE_KEY = 'agrosite_orders';
 
   // ── Auth state ──
   const [user, setUser] = useState(null);
@@ -54,23 +62,77 @@ export default function App() {
   const [cartItems, setCartItems] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [toast, setToast] = useState(null);
-  const [orders, setOrders] = useState(() => {
-    try {
-      const saved = localStorage.getItem(ORDERS_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    } catch {
-      // Fall back to seed data when storage is unavailable or malformed.
-    }
+  const [products, setProducts] = useState(ALL_PRODUCTS);
+  const [orders, setOrders] = useState(INITIAL_ADMIN_ORDERS);
 
-    return INITIAL_ADMIN_ORDERS;
-  });
+  const mapApiOrder = useCallback((order) => {
+    const items = Array.isArray(order.items)
+      ? order.items.map((item) => (
+        typeof item === 'string' ? item : `${item.name} x${item.qty}`
+      ))
+      : [];
+
+    return {
+      id: order.id,
+      customer: order.customer || order.customerEmail || 'Customer',
+      items,
+      total: Number(order.total || 0),
+      status: order.status || 'pending',
+      date: order.date || new Date().toISOString().slice(0, 10),
+      phone: order.phone || '',
+      address: order.address || '',
+    };
+  }, []);
+
+  const loadOrders = useCallback(async (currentUser = user, email = '') => {
+    if (!currentUser?.email) return [];
+    const orderEmailFilter = currentUser.role === 'admin' ? email : currentUser.email;
+    return fetchOrders({ user: currentUser, email: orderEmailFilter });
+  }, [user]);
 
   useEffect(() => {
-    localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
-  }, [orders, ORDERS_STORAGE_KEY]);
+    if (!user?.email) return;
+
+    let active = true;
+
+    const hydrateOrders = async () => {
+      try {
+        const apiOrders = await loadOrders(user);
+        if (active) setOrders(apiOrders.map(mapApiOrder));
+      } catch {
+        if (active) setToast('Could not sync orders from backend. Showing local data.');
+      }
+    };
+
+    hydrateOrders();
+
+    return () => {
+      active = false;
+    };
+  }, [loadOrders, mapApiOrder, user]);
+
+  const loadProducts = useCallback(async () => {
+    return fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const hydrateProducts = async () => {
+      try {
+        const apiProducts = await loadProducts();
+        if (active) setProducts(apiProducts);
+      } catch {
+        if (active) setToast('Could not sync products from backend. Showing local data.');
+      }
+    };
+
+    hydrateProducts();
+
+    return () => {
+      active = false;
+    };
+  }, [loadProducts]);
 
   const cartCount = cartItems.reduce((sum, it) => sum + it.qty, 0);
 
@@ -111,7 +173,7 @@ export default function App() {
 
   // Called by LoginPage / SignupPage on successful submit
   const handleLogin = (userData) => {
-    setUser(userData);
+    setUser({ ...userData, role: 'user' });
     navigate('home');
   };
 
@@ -145,55 +207,111 @@ export default function App() {
     navigate('checkout');
   };
 
-  const handlePlaceOrder = ({ address, phone, saveAsDefault }) => {
-    const orderItems = cartItems.map((item) => `${item.name} x${item.qty}`);
-    const customerName = user?.name || user?.email || 'Guest Customer';
+  const handlePlaceOrder = async ({ address, phone, saveAsDefault }) => {
+    try {
+      if (!user?.email) {
+        setToast('Please login to place an order.');
+        navigate('login');
+        return;
+      }
 
-    const newOrder = {
-      id: Date.now(),
-      customer: customerName,
-      items: orderItems,
-      total: Number(cartSubtotal.toFixed(2)),
-      status: 'pending',
-      date: new Date().toISOString().slice(0, 10),
-      phone,
-      address,
-    };
+      const payload = {
+        customer: user?.name || user?.email || 'Guest Customer',
+        customerEmail: user?.email || '',
+        phone,
+        address,
+        items: cartItems.map((item) => ({ id: item.id, qty: item.qty })),
+      };
 
-    setOrders((prev) => [newOrder, ...prev]);
+      await placeOrder(payload, user);
 
-    if (saveAsDefault) {
-      setUser((prev) => {
-        if (!prev) return prev;
-        return { ...prev, phone, address };
-      });
+      if (saveAsDefault) {
+        setUser((prev) => {
+          if (!prev) return prev;
+          return { ...prev, phone, address };
+        });
+      }
+
+      const apiOrders = await loadOrders(user);
+      setOrders(apiOrders.map(mapApiOrder));
+      setCartItems([]);
+      setToast('Order placed successfully!');
+      navigate('home');
+    } catch (error) {
+      setToast(error.message || 'Failed to place order');
     }
-
-    setCartItems([]);
-    setToast('Order placed successfully!');
-    navigate('home');
   };
 
-  const handleAcceptOrder = (orderId) => {
-    setOrders((prev) => prev.map((o) => (
-      o.id === orderId ? { ...o, status: 'accepted' } : o
-    )));
+  const handleAcceptOrder = async (orderId) => {
+    try {
+      await updateOrderStatus(orderId, 'accepted', user);
+      const apiOrders = await loadOrders(user);
+      setOrders(apiOrders.map(mapApiOrder));
+      setToast('Order accepted');
+    } catch (error) {
+      setToast(error.message || 'Failed to update order');
+    }
   };
 
-  const handleRejectOrder = (orderId) => {
-    setOrders((prev) => prev.map((o) => (
-      o.id === orderId ? { ...o, status: 'rejected' } : o
-    )));
+  const handleRejectOrder = async (orderId) => {
+    try {
+      await updateOrderStatus(orderId, 'rejected', user);
+      const apiOrders = await loadOrders(user);
+      setOrders(apiOrders.map(mapApiOrder));
+      setToast('Order rejected');
+    } catch (error) {
+      setToast(error.message || 'Failed to update order');
+    }
+  };
+
+  const handleSaveProduct = async ({ productId, productData }) => {
+    try {
+      const payload = {
+        ...productData,
+        price: Number(productData.price),
+        stock: Number(productData.stock),
+      };
+
+      if (productId) {
+        await updateProduct(productId, payload, user);
+      } else {
+        await createProduct(payload, user);
+      }
+
+      const apiProducts = await loadProducts();
+      setProducts(apiProducts);
+      setToast('Product saved successfully!');
+      return true;
+    } catch (error) {
+      setToast(error.message || 'Failed to save product');
+      return false;
+    }
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    try {
+      await deleteProduct(productId, user);
+      const apiProducts = await loadProducts();
+      setProducts(apiProducts);
+      setToast('Product deleted successfully!');
+      return true;
+    } catch (error) {
+      setToast(error.message || 'Failed to delete product');
+      return false;
+    }
   };
 
   const handleAdminLogin = ({ email, password }) => {
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      setIsAdminAuthenticated(true);
-      setUser({
+      const adminUser = {
         name: 'Admin',
         email: ADMIN_EMAIL,
+        role: 'admin',
         memberSince: new Date(),
-      });
+      };
+      setIsAdminAuthenticated(true);
+      setUser(adminUser);
+      loadOrders(adminUser);
       setPage('admin');
       return true;
     }
@@ -243,6 +361,9 @@ export default function App() {
         onNavigate={navigate}
         user={user}
         onLogout={handleAdminLogout}
+        products={products}
+        onSaveProduct={handleSaveProduct}
+        onDeleteProduct={handleDeleteProduct}
         orders={orders}
         onAcceptOrder={handleAcceptOrder}
         onRejectOrder={handleRejectOrder}
@@ -252,6 +373,7 @@ export default function App() {
   if (page === 'product') return (
     <ProductDetailPage
       productId={selectedProductId}
+      products={products}
       onNavigate={navigate}
       onAddToCart={addToCart}
     />
@@ -272,7 +394,7 @@ export default function App() {
       <main>
         <Hero />
         <Features />
-        <Products onAddToCart={addToCart} onProductClick={(id) => navigate('product', id)} />
+        <Products products={products} onAddToCart={addToCart} onProductClick={(id) => navigate('product', id)} />
         <PromoBanner />
       </main>
       <Footer />

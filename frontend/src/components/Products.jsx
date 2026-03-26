@@ -15,12 +15,14 @@ function StarRating({ rating }) {
     );
 }
 
-export default function Products({ onAddToCart, onProductClick }) {
+export default function Products({ products, onAddToCart, onProductClick }) {
     const [activeCategory, setActiveCategory] = useState('All');
 
+    const productList = products || ALL_PRODUCTS;
+
     const filtered = activeCategory === 'All'
-        ? ALL_PRODUCTS
-        : ALL_PRODUCTS.filter(p => p.category === activeCategory);
+        ? productList
+        : productList.filter(p => p.category === activeCategory);
 
     return (
         <section className="section products-section" id="products">

@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import './Admin.css';
-import { ADMIN_SEED_PRODUCTS, PRODUCT_FORM_CATEGORIES } from './productsData';
+import { PRODUCT_FORM_CATEGORIES } from './productsData';
 
-export default function Admin({ onNavigate, user, onLogout, orders = [], onAcceptOrder, onRejectOrder }) {
+export default function Admin({ onNavigate, user, onLogout, products = [], onSaveProduct, onDeleteProduct, orders = [], onAcceptOrder, onRejectOrder }) {
   const [activeTab, setActiveTab] = useState('products');
-  const [products, setProducts] = useState(ADMIN_SEED_PRODUCTS);
 
   const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({ name: '', price: '', stock: '', category: '' });
@@ -21,24 +20,21 @@ export default function Admin({ onNavigate, user, onLogout, orders = [], onAccep
     setShowForm(true);
   };
 
-  const handleSaveProduct = (e) => {
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
 
-    if (editingProduct) {
-      setProducts(products.map((p) => (
-        p.id === editingProduct.id ? { ...editingProduct, ...formData } : p
-      )));
-    } else {
-      const newProduct = {
-        id: Math.max(...products.map((p) => p.id), 0) + 1,
+    if (!onSaveProduct) return;
+
+    const success = await onSaveProduct({
+      productId: editingProduct?.id,
+      productData: {
         ...formData,
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock, 10),
-      };
-      setProducts([...products, newProduct]);
-    }
+      },
+    });
 
-    handleCancelEdit();
+    if (success) handleCancelEdit();
   };
 
   const handleCancelEdit = () => {
@@ -47,9 +43,10 @@ export default function Admin({ onNavigate, user, onLogout, orders = [], onAccep
     setShowForm(false);
   };
 
-  const handleDeleteProduct = (id) => {
+  const handleDeleteProduct = async (id) => {
+    if (!onDeleteProduct) return;
     if (confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter((p) => p.id !== id));
+      await onDeleteProduct(id);
     }
   };
 

@@ -31,15 +31,23 @@ function Badge({ type }) {
   );
 }
 
-export default function ProductDetailPage({ productId, onNavigate, onAddToCart }) {
-  const product = ALL_PRODUCTS.find(p => p.id === productId);
-  const details = PRODUCT_DETAILS[productId] || {};
+export default function ProductDetailPage({ productId, products = ALL_PRODUCTS, onNavigate, onAddToCart }) {
+  const product = products.find(p => String(p.id) === String(productId));
+  const details = PRODUCT_DETAILS[productId] || PRODUCT_DETAILS[Number(productId)] || {
+    description: 'Fresh farm product from our latest catalog.',
+    highlights: ['Farm fresh quality', 'Carefully packed', 'Fast delivery'],
+    nutrition: { calories: '-', carbs: '-', fibre: '-', sugar: '-', protein: '-', vitC: '-' },
+    origin: 'India',
+    weight: 'Standard pack',
+    shelf: 'See packaging',
+    stock: product?.stock ?? 0,
+  };
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState('details');
   const [added, setAdded] = useState(false);
 
   // Related products (same category, excluding current)
-  const related = ALL_PRODUCTS.filter(p => p.category === product?.category && p.id !== productId).slice(0, 3);
+  const related = products.filter(p => p.category === product?.category && String(p.id) !== String(productId)).slice(0, 3);
 
   if (!product) {
     return (

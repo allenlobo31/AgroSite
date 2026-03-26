@@ -237,3 +237,84 @@ export const PROFILE_MOCK_ORDERS = [
     ],
   },
 ];
+
+// Database seed content aligned with backend Product schema.
+// Fields: name, category, price, stock, image, badge
+export const DATABASE_SEED_PRODUCTS = [
+  {
+    name: 'Organic Fuji Apples',
+    category: 'Fruits',
+    price: 4.99,
+    stock: 48,
+    image: '/product-apple.png',
+    badge: 'organic',
+  },
+  {
+    name: 'Vine Ripened Tomatoes',
+    category: 'Vegetables',
+    price: 3.49,
+    stock: 72,
+    image: '/product-tomato.png',
+    badge: 'new',
+  },
+  {
+    name: 'Baby Spinach Leaves',
+    category: 'Vegetables',
+    price: 2.99,
+    stock: 34,
+    image: '/product-spinach.png',
+    badge: 'sale',
+  },
+  {
+    name: 'Farm Fresh Carrots',
+    category: 'Vegetables',
+    price: 2.49,
+    stock: 60,
+    image: '/product-carrot.png',
+    badge: 'organic',
+  },
+  {
+    name: 'Raw Wildflower Honey',
+    category: 'Pantry',
+    price: 12.99,
+    stock: 22,
+    image: '/product-honey.png',
+    badge: 'organic',
+  },
+  {
+    name: 'Heirloom Seed Kit',
+    category: 'Seeds',
+    price: 24.99,
+    stock: 15,
+    image: '/feature-seeds.png',
+    badge: 'sale',
+  },
+  {
+    name: 'Premium Garden Tools Set',
+    category: 'Tools',
+    price: 49.99,
+    stock: 8,
+    image: '/feature-tools.png',
+    badge: 'new',
+  },
+  {
+    name: 'Organic Compost Mix',
+    category: 'Fertilizers',
+    price: 14.99,
+    stock: 29,
+    image: '/feature-seeds.png',
+    badge: 'organic',
+  },
+];
+
+// Helper if you want to generate DB seed payload from catalog data dynamically.
+export function buildDatabaseSeedProducts() {
+  return ALL_PRODUCTS.map((product) => ({
+    name: product.name,
+    category: product.category,
+    price: Number(product.price || 0),
+    stock: Number(PRODUCT_DETAILS?.[product.id]?.stock || 0),
+    image: product.image || '',
+    badge: product.badge || '',
+  }));
+}

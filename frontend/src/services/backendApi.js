@@ -1,0 +1,112 @@
+const API_BASE_URL = (import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:5001/api').replace(/\/$/, '');
+
+async function request(path, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || `Request failed: ${response.status}`);
+  }
+
+  return data;
+}
+
+function buildAuthHeaders(user) {
+  if (!user?.email) return {};
+
+  return {
+    'x-user-email': String(user.email),
+    'x-user-name': String(user.name || ''),
+    'x-user-role': String(user.role || 'user'),
+  };
+}
+
+function normalizeProduct(product) {
+  return {
+    ...product,
+    id: String(product.id || product._id || ''),
+    price: Number(product.price || 0),
+    stock: Number(product.stock || 0),
+    original: product.original != null ? Number(product.original) : null,
+    rating: Number(product.rating || 4.5),
+    reviews: Number(product.reviews || 0),
+    badge: product.badge || 'new',
+    image: product.image || '/product-apple.png',
+  };
+}
+
+export async function fetchProducts() {
+  const data = await request('/products', { method: 'GET' });
+  return Array.isArray(data.products) ? data.products.map(normalizeProduct) : [];
+}
+
+export async function createProduct(product, user) {
+  const data = await request('/products', {
+    method: 'POST',
+    headers: buildAuthHeaders(user),
+    body: JSON.stringify(product),
+  });
+  return normalizeProduct(data);
+}
+
+export async function updateProduct(productId, product, user) {
+  const data = await request(`/products/${productId}`, {
+    method: 'PATCH',
+    headers: buildAuthHeaders(user),
+    body: JSON.stringify(product),
+  });
+  return normalizeProduct(data);
+}
+
+export async function deleteProduct(productId, user) {
+  return request(`/products/${productId}`, {
+    method: 'DELETE',
+    headers: buildAuthHeaders(user),
+  });
+}
+
+function normalizeOrder(order) {
+  return {
+    ...order,
+    id: String(order.id || order._id || ''),
+    subtotal: Number(order.subtotal || 0),
+    total: Number(order.total || 0),
+    items: Array.isArray(order.items) ? order.items : [],
+    status: order.status || 'pending',
+    date: order.date || new Date().toISOString().slice(0, 10),
+  };
+}
+
+export async function placeOrder(payload, user) {
+  const data = await request('/orders', {
+    method: 'POST',
+    headers: buildAuthHeaders(user),
+    body: JSON.stringify(payload),
+  });
+  return normalizeOrder(data);
+}
+
+export async function fetchOrders({ user, email = '' } = {}) {
+  const query = email ? `?email=${encodeURIComponent(email)}` : '';
+  const data = await request(`/orders${query}`, {
+    method: 'GET',
+    headers: buildAuthHeaders(user),
+  });
+  return Array.isArray(data.orders) ? data.orders.map(normalizeOrder) : [];
+}
+
+export async function updateOrderStatus(orderId, status, user) {
+  const data = await request(`/orders/${orderId}/status`, {
+    method: 'PATCH',
+    headers: buildAuthHeaders(user),
+    body: JSON.stringify({ status }),
+  });
+  return normalizeOrder(data);
+}
