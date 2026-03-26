@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ALL_PRODUCTS } from './Products';
+import { ALL_PRODUCTS } from './productsData';
 
 /* ── Extended product details map ── */
 const PRODUCT_DETAILS = {

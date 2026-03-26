@@ -41,7 +41,12 @@ export default function App() {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
   // ── Navigation ──
-  const [page, setPage] = useState('home');
+  const [page, setPage] = useState(() => {
+    if (typeof window !== 'undefined' && window.location.pathname === '/admin') {
+      return 'admin-login';
+    }
+    return 'home';
+  });
   const [selectedProductId, setSelectedProductId] = useState(null);
 
   // ── Cart ──
@@ -65,13 +70,6 @@ export default function App() {
       { id: 103, customer: 'Bob Johnson', items: ['Tomatoes'], total: 50, status: 'accepted', date: '2026-03-25', phone: '9988776655', address: 'Hill Park Street, Nashik' },
     ];
   });
-
-  // ── Check URL for admin access ──
-  useEffect(() => {
-    if (window.location.pathname === '/admin') {
-      setPage('admin-login');
-    }
-  }, []);
 
   useEffect(() => {
     localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
