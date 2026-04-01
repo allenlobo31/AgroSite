@@ -97,7 +97,13 @@ export default function App() {
   const mapApiOrder = useCallback((order) => {
     const items = Array.isArray(order.items)
       ? order.items.map((item) => (
-        typeof item === 'string' ? item : `${item.name} x${item.qty}`
+        typeof item === 'string'
+          ? { name: item, qty: 1, price: 0 }
+          : {
+            name: item.name || 'Item',
+            qty: Number(item.qty || 1),
+            price: Number(item.price || 0),
+          }
       ))
       : [];
 
@@ -449,6 +455,7 @@ export default function App() {
       <ProfilePage
         onNavigate={navigate}
         user={user}
+        orders={orders}
         onLogout={handleLogout}
         onUserUpdate={handleUserProfileUpdate}
       />
@@ -512,16 +519,18 @@ export default function App() {
         onSignup={() => navigate('signup')}
         onProfile={() => navigate('profile')}
         onLogout={handleLogout}
+        onAllProducts={() => navigate('all-products')}
       />
       <main>
         <Hero />
-        <Features />
         <Products
           products={products}
           onAddToCart={addToCart}
           onProductClick={(id) => navigate('product', id)}
           onViewAll={() => navigate('all-products')}
         />
+        <Features />
+        
         <PromoBanner />
       </main>
       <Footer />

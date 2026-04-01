@@ -207,6 +207,16 @@ export default function Admin({ onNavigate, user, onLogout, products = [], onSav
         ) : (
           orders.map((order) => (
             <div key={order.id} className={`order-card status-${order.status}`}>
+              {/** Keep orders readable for both string and object item shapes */}
+              {(() => {
+                const itemSummary = Array.isArray(order.items)
+                  ? order.items
+                    .map((item) => (typeof item === 'string' ? item : `${item.name} x${item.qty}`))
+                    .join(', ')
+                  : '';
+
+                return (
+                  <>
               <div className="order-header">
                 <h3>Order #{order.id}</h3>
                 <span className={`status-badge ${order.status}`}>{order.status.toUpperCase()}</span>
@@ -215,7 +225,7 @@ export default function Admin({ onNavigate, user, onLogout, products = [], onSav
               <div className="order-details">
                 <p><strong>Customer:</strong> {order.customer}</p>
                 <p><strong>Date:</strong> {order.date}</p>
-                <p><strong>Items:</strong> {order.items.join(', ')}</p>
+                <p><strong>Items:</strong> {itemSummary}</p>
                 {order.phone && <p><strong>Phone:</strong> {order.phone}</p>}
                 {order.address && <p><strong>Address:</strong> {order.address}</p>}
                 <p><strong>Total:</strong> ₹{order.total}</p>
@@ -230,6 +240,9 @@ export default function Admin({ onNavigate, user, onLogout, products = [], onSav
 
               {order.status === 'accepted' && <div className="order-status">Accepted</div>}
               {order.status === 'rejected' && <div className="order-status rejected">Rejected</div>}
+                  </>
+                );
+              })()}
             </div>
           ))
         )}

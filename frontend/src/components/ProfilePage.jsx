@@ -1,19 +1,40 @@
 import { useEffect, useState } from 'react';
-import { PROFILE_MOCK_ORDERS } from './productsData';
 
 const statusColors = {
-  Delivered: { bg: '#f0fdf4', text: '#16a34a', dot: '#22c55e' },
-  Processing: { bg: '#fefce8', text: '#ca8a04', dot: '#eab308' },
-  Shipped: { bg: '#eff6ff', text: '#2563eb', dot: '#3b82f6' },
-  Cancelled: { bg: '#fef2f2', text: '#dc2626', dot: '#ef4444' },
+  pending: { bg: '#fefce8', text: '#a16207', dot: '#eab308' },
+  passed: { bg: '#f0fdf4', text: '#16a34a', dot: '#22c55e' },
+  rejected: { bg: '#fef2f2', text: '#dc2626', dot: '#ef4444' },
 };
 
-export default function ProfilePage({ onNavigate, user, onLogout, onUserUpdate }) {
+function toProfileStatus(status) {
+  if (status === 'accepted') return 'passed';
+  if (status === 'rejected') return 'rejected';
+  return 'pending';
+}
+
+export default function ProfilePage({ onNavigate, user, orders = [], onLogout, onUserUpdate }) {
   const [activeTab, setActiveTab] = useState('profile');
   const [editing, setEditing] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState(null);
-  
-  const mockOrders = PROFILE_MOCK_ORDERS;
+
+  const profileOrders = Array.isArray(orders)
+    ? orders.map((order) => ({
+      ...order,
+      status: toProfileStatus(String(order.status || '').toLowerCase()),
+      items: Array.isArray(order.items)
+        ? order.items.map((item) => (
+          typeof item === 'string'
+            ? { name: item, qty: 1, price: 0 }
+            : {
+              name: item.name || 'Item',
+              qty: Number(item.qty || 1),
+              price: Number(item.price || 0),
+            }
+        ))
+        : [],
+      total: Number(order.total || 0),
+    }))
+    : [];
   
   // Address state management - initialize with user's initial address if provided
   const [addresses, setAddresses] = useState(() => {
@@ -366,9 +387,9 @@ export default function ProfilePage({ onNavigate, user, onLogout, onUserUpdate }
               {/* Stats row */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem' }}>
                 {[
-                  { label: 'Total Orders', value: mockOrders.length, color: '#16a34a' },
-                  { label: 'Total Spent', value: `₹${mockOrders.reduce((s, o) => s + o.total, 0).toFixed(2)}`, color: '#7c3aed' },
-                  { label: 'Items Purchased', value: mockOrders.flatMap(o => o.items).reduce((s, i) => s + i.qty, 0), color: '#ea580c' },
+                  { label: 'Total Orders', value: profileOrders.length, color: '#16a34a' },
+                  { label: 'Total Spent', value: `₹${profileOrders.reduce((s, o) => s + o.total, 0).toFixed(2)}`, color: '#7c3aed' },
+                  { label: 'Items Purchased', value: profileOrders.flatMap((o) => o.items).reduce((s, i) => s + Number(i.qty || 0), 0), color: '#ea580c' },
                 ].map(stat => (
                   <div key={stat.label} style={{ background: 'white', borderRadius: 16, padding: '1.5rem', textAlign: 'center', boxShadow: '0 2px 16px rgba(0,0,0,0.05)', border: '1px solid #f3f4f6' }}>
                     <div style={{ fontSize: 28, fontWeight: 800, color: stat.color, marginBottom: 4 }}>{stat.value}</div>
@@ -384,11 +405,11 @@ export default function ProfilePage({ onNavigate, user, onLogout, onUserUpdate }
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
                 <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 28, fontWeight: 700, color: '#0a0f0d', marginBottom: 4, letterSpacing: '-0.5px' }}>Past Orders</h1>
-                <p style={{ fontSize: 14, color: '#9ca3af' }}>{mockOrders.length} orders in your history</p>
+                <p style={{ fontSize: 14, color: '#9ca3af' }}>{profileOrders.length} orders in your history</p>
               </div>
 
-              {mockOrders.map(order => {
-                const s = statusColors[order.status] || statusColors.Delivered;
+              {profileOrders.map(order => {
+                const s = statusColors[order.status] || statusColors.pending;
                 const open = expandedOrder === order.id;
                 return (
                   <div key={order.id} style={{ background: 'white', borderRadius: 20, boxShadow: '0 2px 20px rgba(0,0,0,0.06)', border: '1px solid #f3f4f6', overflow: 'hidden' }}>

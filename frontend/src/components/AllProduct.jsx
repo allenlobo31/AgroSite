@@ -163,7 +163,7 @@ export default function AllProduct({ products = ALL_PRODUCTS, onNavigate, onProd
           Showing {visibleProducts.length} product{visibleProducts.length === 1 ? '' : 's'}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14 }}>
           {visibleProducts.length === 0 ? (
             <div
               style={{
