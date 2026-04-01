@@ -4,6 +4,7 @@ export default function LoginPage({ onNavigate, onLogin }) {
     const [showPw, setShowPw] = useState(false);
     const [form, setForm] = useState({ email: '', password: '', phone: '' });
     const [errors, setErrors] = useState({});
+    const [submitting, setSubmitting] = useState(false);
 
     const handlePhoneChange = (value) => {
         // Only allow digits
@@ -15,7 +16,7 @@ export default function LoginPage({ onNavigate, onLogin }) {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const newErrors = {};
         
@@ -33,15 +34,25 @@ export default function LoginPage({ onNavigate, onLogin }) {
             setErrors(newErrors);
             return;
         }
-        
-        // Derive a display name from the email (part before @)
-        const name = form.email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        onLogin({
-            name,
-            email: form.email,
-            phone: form.phone,
-            memberSince: new Date(),
-        });
+
+        try {
+            setSubmitting(true);
+            await onLogin({
+                email: form.email,
+                password: form.password,
+            });
+        } catch (error) {
+            const message = String(error?.message || 'Login failed');
+            if (message === 'Invalid email') {
+                setErrors({ email: 'Invalid email' });
+            } else if (message === 'Invalid password') {
+                setErrors({ password: 'Invalid password' });
+            } else {
+                setErrors({ form: message });
+            }
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -116,6 +127,7 @@ export default function LoginPage({ onNavigate, onLogin }) {
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                        {errors.form && <p style={{ color: '#ef4444', fontSize: 12, margin: '0 0 6px 0', fontWeight: 600 }}>{errors.form}</p>}
                         <input
                             id="login-email"
                             type="email"
@@ -208,10 +220,11 @@ export default function LoginPage({ onNavigate, onLogin }) {
                             boxShadow: '0 6px 24px rgba(34,197,94,0.4)',
                             transition: 'all 0.3s ease',
                         }}
+                            disabled={submitting}
                             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(34,197,94,0.5)'; }}
                             onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 6px 24px rgba(34,197,94,0.4)'; }}
                         >
-                            Log In
+                            {submitting ? 'Logging In...' : 'Log In'}
                         </button>
                     </form>
 

@@ -24,7 +24,31 @@ import {
   placeOrder,
   fetchOrders,
   updateOrderStatus,
+  signupUser,
+  loginUser,
 } from './services/backendApi';
+
+const USER_SESSION_STORAGE_KEY = 'agrosite_user_session';
+const CART_STORAGE_KEY = 'agrosite_cart_items';
+
+function getStoredUserSession() {
+  if (typeof window === 'undefined') return null;
+
+  const raw = window.localStorage.getItem(USER_SESSION_STORAGE_KEY);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || !parsed.email) {
+      window.localStorage.removeItem(USER_SESSION_STORAGE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    window.localStorage.removeItem(USER_SESSION_STORAGE_KEY);
+    return null;
+  }
+}
 
 // Toast notification
 function Toast({ message, onDone }) {
@@ -44,10 +68,12 @@ function Toast({ message, onDone }) {
 export default function App() {
   const ADMIN_EMAIL = 'admin@agrosite';
   const ADMIN_PASSWORD = 'admin@agrosite';
+  const restoredUserSession = getStoredUserSession();
+  const restoredCartItems = getStoredCartItems();
 
   // ── Auth state ──
-  const [user, setUser] = useState(null);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [user, setUser] = useState(restoredUserSession);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(Boolean(restoredUserSession?.role === 'admin'));
 
   // ── Navigation ──
   const [page, setPage] = useState(() => {
@@ -135,6 +161,37 @@ export default function App() {
     };
   }, [loadProducts]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (user?.email) {
+      window.localStorage.setItem(USER_SESSION_STORAGE_KEY, JSON.stringify(user));
+      return;
+    }
+
+    window.localStorage.removeItem(USER_SESSION_STORAGE_KEY);
+  }, [user]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (cartItems.length > 0) {
+      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+      return;
+    }
+
+    window.localStorage.removeItem(CART_STORAGE_KEY);
+  }, [cartItems]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (window.location.pathname === '/admin' && user?.role === 'admin') {
+      setIsAdminAuthenticated(true);
+      setPage('admin');
+    }
+  }, [user]);
+
   const cartCount = cartItems.reduce((sum, it) => sum + it.qty, 0);
 
   const addToCart = (product) => {
@@ -172,9 +229,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Called by LoginPage / SignupPage on successful submit
-  const handleLogin = (userData) => {
-    setUser({ ...userData, role: 'user' });
+  const completePostLoginNavigation = () => {
 
     if (postAuthRedirect === 'checkout') {
       setPostAuthRedirect(null);
@@ -185,8 +240,21 @@ export default function App() {
     navigate('home');
   };
 
+  const handleLogin = async ({ email, password }) => {
+    const loggedInUser = await loginUser({ email, password });
+    setUser(loggedInUser);
+    completePostLoginNavigation();
+  };
+
+  const handleSignup = async ({ name, email, password, phone }) => {
+    await signupUser({ name, email, password, phone });
+    setToast('Signup successful. Please login to continue.');
+    navigate('login');
+  };
+
   const handleLogout = () => {
     setUser(null);
+    setIsAdminAuthenticated(false);
     navigate('home');
   };
 
@@ -352,7 +420,7 @@ export default function App() {
   const handleToastDone = useCallback(() => setToast(null), []);
   // ── Auth / Profile / Product pages (full-screen) ──
   if (page === 'login')   return <LoginPage  onNavigate={navigate} onLogin={handleLogin} />;
-  if (page === 'signup')  return <SignupPage  onNavigate={navigate} onLogin={handleLogin} />;
+  if (page === 'signup')  return <SignupPage  onNavigate={navigate} onSignup={handleSignup} />;
   if (page === 'profile') {
     return (
       <ProfilePage
@@ -436,4 +504,31 @@ export default function App() {
       )}
     </>
   );
+}
+
+function getStoredCartItems() {
+  if (typeof window === 'undefined') return [];
+
+  const raw = window.localStorage.getItem(CART_STORAGE_KEY);
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      window.localStorage.removeItem(CART_STORAGE_KEY);
+      return [];
+    }
+
+    return parsed.filter((item) => (
+      item
+      && typeof item === 'object'
+      && item.id != null
+      && Number.isFinite(Number(item.price))
+      && Number.isFinite(Number(item.qty))
+      && Number(item.qty) > 0
+    ));
+  } catch {
+    window.localStorage.removeItem(CART_STORAGE_KEY);
+    return [];
+  }
 }

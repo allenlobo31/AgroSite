@@ -139,3 +139,19 @@ export async function updateOrderStatus(orderId, status, user) {
   });
   return normalizeOrder(data);
 }
+
+export async function signupUser(payload) {
+  const data = await request('/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return data.user;
+}
+
+export async function loginUser(payload) {
+  const data = await request('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return data.user;
+}
