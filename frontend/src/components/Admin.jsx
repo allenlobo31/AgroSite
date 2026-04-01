@@ -6,7 +6,7 @@ export default function Admin({ onNavigate, user, onLogout, products = [], onSav
   const [activeTab, setActiveTab] = useState('products');
 
   const [editingProduct, setEditingProduct] = useState(null);
-  const [formData, setFormData] = useState({ name: '', price: '', stock: '', category: '' });
+  const [formData, setFormData] = useState({ name: '', price: '', stock: '', category: '', image: '' });
   const [showForm, setShowForm] = useState(false);
 
   const handleEditProduct = (product) => {
@@ -16,6 +16,7 @@ export default function Admin({ onNavigate, user, onLogout, products = [], onSav
       price: product.price,
       stock: product.stock,
       category: product.category,
+      image: product.image || '',
     });
     setShowForm(true);
   };
@@ -39,7 +40,7 @@ export default function Admin({ onNavigate, user, onLogout, products = [], onSav
 
   const handleCancelEdit = () => {
     setEditingProduct(null);
-    setFormData({ name: '', price: '', stock: '', category: '' });
+    setFormData({ name: '', price: '', stock: '', category: '', image: '' });
     setShowForm(false);
   };
 
@@ -82,7 +83,7 @@ export default function Admin({ onNavigate, user, onLogout, products = [], onSav
           className="btn-add-product"
           onClick={() => {
             setEditingProduct(null);
-            setFormData({ name: '', price: '', stock: '', category: '' });
+            setFormData({ name: '', price: '', stock: '', category: '', image: '' });
             setShowForm(true);
           }}
         >
@@ -147,6 +148,17 @@ export default function Admin({ onNavigate, user, onLogout, products = [], onSav
                     <option key={category} value={category}>{category}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label>Product Image URL</label>
+                <input
+                  type="text"
+                  name="image"
+                  value={formData.image}
+                  onChange={handleFormChange}
+                  placeholder="https://example.com/product.jpg"
+                />
               </div>
 
               <div className="form-actions">

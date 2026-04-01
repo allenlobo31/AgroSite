@@ -1,21 +1,50 @@
-const API_BASE_URL = (import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:5001/api').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:5002/api').replace(/\/$/, '');
+const API_FALLBACK_URLS = ['http://localhost:5001/api', 'http://localhost:5002/api'];
+
+let preferredApiBaseUrl = API_BASE_URL;
+
+function getApiBaseCandidates() {
+  return [preferredApiBaseUrl, API_BASE_URL, ...API_FALLBACK_URLS]
+    .map((url) => String(url || '').replace(/\/$/, ''))
+    .filter(Boolean)
+    .filter((url, index, arr) => arr.indexOf(url) === index);
+}
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+  const candidates = getApiBaseCandidates();
+  let lastError;
+  const { headers: customHeaders = {}, ...restOptions } = options;
 
-  const data = await response.json().catch(() => ({}));
+  for (const baseUrl of candidates) {
+    try {
+      const response = await fetch(`${baseUrl}${path}`, {
+        ...restOptions,
+        headers: {
+          'Content-Type': 'application/json',
+          ...customHeaders,
+        },
+      });
 
-  if (!response.ok) {
-    throw new Error(data.error || `Request failed: ${response.status}`);
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message = data && typeof data === 'object' ? data.error : '';
+        throw new Error(message || `Request failed: ${response.status}`);
+      }
+
+      preferredApiBaseUrl = baseUrl;
+      return data || {};
+    } catch (error) {
+      // Retry on connectivity issues; surface API errors immediately.
+      const isNetworkError = error instanceof TypeError;
+      if (!isNetworkError) {
+        throw error;
+      }
+      lastError = error;
+    }
   }
 
-  return data;
+  throw lastError || new Error('Failed to connect to backend API');
 }
 
 function buildAuthHeaders(user) {

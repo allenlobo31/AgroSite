@@ -20,7 +20,7 @@ export default function CartSidebar({ isOpen, onClose, cartItems, onUpdateQty, o
             <div className="cart-overlay" onClick={onClose} id="cart-overlay" />
             <aside className="cart-sidebar" id="cart-sidebar">
                 <div className="cart-header">
-                    <h3>Your Basket 🛒</h3>
+                    <h3>Your Basket</h3>
                     <button className="cart-close" onClick={onClose} aria-label="Close cart" id="cart-close-btn">✕</button>
                 </div>
 
@@ -85,7 +85,7 @@ export default function CartSidebar({ isOpen, onClose, cartItems, onUpdateQty, o
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                                     <span style={{ fontSize: 13, color: '#6b7280' }}>Shipping</span>
-                                    <span style={{ fontSize: 13, color: '#16a34a', fontWeight: 600 }}>FREE 🎉</span>
+                                    <span style={{ fontSize: 13, color: '#16a34a', fontWeight: 600 }}>FREE</span>
                                 </div>
                                 <div style={{
                                     borderTop: '1px solid #dcfce7', paddingTop: 8,
@@ -99,7 +99,7 @@ export default function CartSidebar({ isOpen, onClose, cartItems, onUpdateQty, o
                             </div>
 
                             <button className="checkout-btn" id="checkout-btn" onClick={onCheckout}>
-                                Checkout — ₹{subtotal.toFixed(2)} 🌿
+                                Checkout — ₹{subtotal.toFixed(2)} 
                             </button>
                             <button
                                 onClick={onClose}

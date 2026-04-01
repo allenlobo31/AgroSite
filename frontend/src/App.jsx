@@ -56,6 +56,7 @@ export default function App() {
     }
     return 'home';
   });
+  const [postAuthRedirect, setPostAuthRedirect] = useState(null);
   const [selectedProductId, setSelectedProductId] = useState(null);
 
   // ── Cart ──
@@ -174,6 +175,13 @@ export default function App() {
   // Called by LoginPage / SignupPage on successful submit
   const handleLogin = (userData) => {
     setUser({ ...userData, role: 'user' });
+
+    if (postAuthRedirect === 'checkout') {
+      setPostAuthRedirect(null);
+      navigate('checkout');
+      return;
+    }
+
     navigate('home');
   };
 
@@ -203,6 +211,15 @@ export default function App() {
 
   const handleStartCheckout = () => {
     if (cartItems.length === 0) return;
+
+    if (!user?.email) {
+      setCartOpen(false);
+      setPostAuthRedirect('checkout');
+      setToast('Please login to continue to checkout.');
+      navigate('login');
+      return;
+    }
+
     setCartOpen(false);
     navigate('checkout');
   };
@@ -273,13 +290,19 @@ export default function App() {
       };
 
       if (productId) {
-        await updateProduct(productId, payload, user);
+        const updatedProduct = await updateProduct(productId, payload, user);
+        setProducts((prev) => prev.map((item) => (item.id === productId ? updatedProduct : item)));
       } else {
-        await createProduct(payload, user);
+        const createdProduct = await createProduct(payload, user);
+        setProducts((prev) => [createdProduct, ...prev]);
       }
 
-      const apiProducts = await loadProducts();
-      setProducts(apiProducts);
+      loadProducts()
+        .then((apiProducts) => setProducts(apiProducts))
+        .catch(() => {
+          // Keep the optimistic UI state if background sync fails.
+        });
+
       setToast('Product saved successfully!');
       return true;
     } catch (error) {
