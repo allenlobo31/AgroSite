@@ -12,6 +12,7 @@ import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import ProfilePage from './components/ProfilePage';
 import ProductDetailPage from './components/ProductDetailPage';
+import AllProduct from './components/AllProduct';
 import Admin from './components/Admin';
 import AdminLogin from './components/AdminLogin';
 import CheckoutPage from './components/CheckoutPage';
@@ -491,6 +492,14 @@ export default function App() {
       onAddToCart={addToCart}
     />
   );
+  if (page === 'all-products') return (
+    <AllProduct
+      products={products}
+      onNavigate={navigate}
+      onProductClick={(id) => navigate('product', id)}
+      onAddToCart={addToCart}
+    />
+  );
 
   // ── Main site ──
   return (
@@ -507,7 +516,12 @@ export default function App() {
       <main>
         <Hero />
         <Features />
-        <Products products={products} onAddToCart={addToCart} onProductClick={(id) => navigate('product', id)} />
+        <Products
+          products={products}
+          onAddToCart={addToCart}
+          onProductClick={(id) => navigate('product', id)}
+          onViewAll={() => navigate('all-products')}
+        />
         <PromoBanner />
       </main>
       <Footer />
