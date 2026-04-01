@@ -26,6 +26,7 @@ import {
   updateOrderStatus,
   signupUser,
   loginUser,
+  updateUserProfile,
 } from './services/backendApi';
 
 const USER_SESSION_STORAGE_KEY = 'agrosite_user_session';
@@ -275,7 +276,28 @@ export default function App() {
 
       return unchanged ? prev : next;
     });
-  }, []);
+
+    if (!user?.email) return;
+
+    const merged = { ...user, ...updates };
+    const profilePayload = {
+      name: merged.name,
+      phone: merged.phone || '',
+      address: merged.address || '',
+      savedAddresses: Array.isArray(merged.savedAddresses) ? merged.savedAddresses : [],
+    };
+
+    updateUserProfile(profilePayload, user)
+      .then((serverUser) => {
+        setUser((current) => {
+          if (!current || current.email !== serverUser.email) return current;
+          return { ...current, ...serverUser };
+        });
+      })
+      .catch(() => {
+        setToast('Could not sync profile to backend. Changes are saved locally for now.');
+      });
+  }, [user]);
 
   const handleStartCheckout = () => {
     if (cartItems.length === 0) return;

@@ -155,3 +155,12 @@ export async function loginUser(payload) {
   });
   return data.user;
 }
+
+export async function updateUserProfile(payload, user) {
+  const data = await request('/auth/profile', {
+    method: 'PATCH',
+    headers: buildAuthHeaders(user),
+    body: JSON.stringify(payload),
+  });
+  return data.user;
+}

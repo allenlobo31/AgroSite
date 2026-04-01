@@ -1,5 +1,40 @@
 const mongoose = require('mongoose');
 
+const savedAddressSchema = new mongoose.Schema(
+  {
+    id: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    label: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    name: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    address: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    phone: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    isDefault: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -22,6 +57,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
       trim: true,
+    },
+    address: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    savedAddresses: {
+      type: [savedAddressSchema],
+      default: [],
     },
     role: {
       type: String,
