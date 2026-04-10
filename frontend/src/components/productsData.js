@@ -43,7 +43,7 @@ export const ALL_PRODUCTS = [
 
 export const PRODUCT_CATEGORIES = ['All', 'Fruits', 'Vegetables', 'Seeds', 'Tools', 'Pantry', 'Fertilizers'];
 
-export const PRODUCT_FORM_CATEGORIES = ['Vegetables', 'Fruits', 'Grains', 'Dairy'];
+export const PRODUCT_FORM_CATEGORIES = ['Fruits', 'Vegetables', 'Seeds', 'Tools', 'Pantry', 'Fertilizers'];
 
 export const NON_FOOD_CATEGORIES = ['Seeds', 'Tools', 'Fertilizers'];
 

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { RightPanel } from './LoginPage';
 
-export default function SignupPage({ onNavigate, onLogin }) {
+export default function SignupPage({ onNavigate, onSignup }) {
     const [showPw, setShowPw] = useState(false);
     const [form, setForm] = useState({ name: '', email: '', password: '', phone: '' });
     const [errors, setErrors] = useState({});
+    const [submitting, setSubmitting] = useState(false);
 
     const handlePhoneChange = (value) => {
         // Only allow digits
@@ -16,7 +17,7 @@ export default function SignupPage({ onNavigate, onLogin }) {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const newErrors = {};
         
@@ -37,13 +38,25 @@ export default function SignupPage({ onNavigate, onLogin }) {
             setErrors(newErrors);
             return;
         }
-        
-        onLogin({
-            name: form.name.trim() || form.email.split('@')[0],
-            email: form.email,
-            phone: form.phone,
-            memberSince: new Date(),
-        });
+
+        try {
+            setSubmitting(true);
+            await onSignup({
+                name: form.name.trim() || form.email.split('@')[0],
+                email: form.email,
+                password: form.password,
+                phone: form.phone,
+            });
+        } catch (error) {
+            const message = String(error?.message || 'Signup failed');
+            if (message === 'Email already registered') {
+                setErrors({ email: 'Email already registered' });
+            } else {
+                setErrors({ form: message });
+            }
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const inputStyle = {
@@ -127,6 +140,7 @@ export default function SignupPage({ onNavigate, onLogin }) {
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        {errors.form && <p style={{ color: '#ef4444', fontSize: 12, margin: '0 0 6px 0', fontWeight: 600 }}>{errors.form}</p>}
                         <input
                             id="signup-name"
                             type="text"
@@ -231,10 +245,11 @@ export default function SignupPage({ onNavigate, onLogin }) {
                             boxShadow: '0 6px 24px rgba(34,197,94,0.4)',
                             transition: 'all 0.3s ease',
                         }}
+                            disabled={submitting}
                             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(34,197,94,0.5)'; }}
                             onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 6px 24px rgba(34,197,94,0.4)'; }}
                         >
-                            Start Growing
+                            {submitting ? 'Creating Account...' : 'Start Growing'}
                         </button>
                     </form>
 

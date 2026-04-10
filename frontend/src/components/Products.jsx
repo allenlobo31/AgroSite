@@ -15,7 +15,7 @@ function StarRating({ rating }) {
     );
 }
 
-export default function Products({ products, onAddToCart, onProductClick }) {
+export default function Products({ products, onAddToCart, onProductClick, onViewAll }) {
     const [activeCategory, setActiveCategory] = useState('All');
 
     const productList = products || ALL_PRODUCTS;
@@ -108,7 +108,7 @@ export default function Products({ products, onAddToCart, onProductClick }) {
                         color: '#16a34a',
                         border: '1.5px solid #16a34a',
                         boxShadow: 'none'
-                    }} id="view-all-btn">
+                    }} id="view-all-btn" onClick={onViewAll}>
                         View All Products →
                     </button>
                 </div>

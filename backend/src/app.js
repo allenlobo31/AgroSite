@@ -4,6 +4,7 @@ const { getDbStatus } = require('./config/database');
 
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const authRoutes = require('./routes/authRoutes');
 const notFound = require('./middleware/notFound');
 
 const app = express();
@@ -21,6 +22,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/auth', authRoutes);
 
 app.use(notFound);
 

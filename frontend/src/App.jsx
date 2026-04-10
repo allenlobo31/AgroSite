@@ -12,6 +12,7 @@ import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import ProfilePage from './components/ProfilePage';
 import ProductDetailPage from './components/ProductDetailPage';
+import AllProduct from './components/AllProduct';
 import Admin from './components/Admin';
 import AdminLogin from './components/AdminLogin';
 import CheckoutPage from './components/CheckoutPage';
@@ -24,7 +25,32 @@ import {
   placeOrder,
   fetchOrders,
   updateOrderStatus,
+  signupUser,
+  loginUser,
+  updateUserProfile,
 } from './services/backendApi';
+
+const USER_SESSION_STORAGE_KEY = 'agrosite_user_session';
+const CART_STORAGE_KEY = 'agrosite_cart_items';
+
+function getStoredUserSession() {
+  if (typeof window === 'undefined') return null;
+
+  const raw = window.localStorage.getItem(USER_SESSION_STORAGE_KEY);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || !parsed.email) {
+      window.localStorage.removeItem(USER_SESSION_STORAGE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    window.localStorage.removeItem(USER_SESSION_STORAGE_KEY);
+    return null;
+  }
+}
 
 // Toast notification
 function Toast({ message, onDone }) {
@@ -44,10 +70,12 @@ function Toast({ message, onDone }) {
 export default function App() {
   const ADMIN_EMAIL = 'admin@agrosite';
   const ADMIN_PASSWORD = 'admin@agrosite';
+  const restoredUserSession = getStoredUserSession();
+  const restoredCartItems = getStoredCartItems();
 
   // ── Auth state ──
-  const [user, setUser] = useState(null);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [user, setUser] = useState(restoredUserSession);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(Boolean(restoredUserSession?.role === 'admin'));
 
   // ── Navigation ──
   const [page, setPage] = useState(() => {
@@ -56,6 +84,7 @@ export default function App() {
     }
     return 'home';
   });
+  const [postAuthRedirect, setPostAuthRedirect] = useState(null);
   const [selectedProductId, setSelectedProductId] = useState(null);
 
   // ── Cart ──
@@ -68,7 +97,13 @@ export default function App() {
   const mapApiOrder = useCallback((order) => {
     const items = Array.isArray(order.items)
       ? order.items.map((item) => (
-        typeof item === 'string' ? item : `${item.name} x${item.qty}`
+        typeof item === 'string'
+          ? { name: item, qty: 1, price: 0 }
+          : {
+            name: item.name || 'Item',
+            qty: Number(item.qty || 1),
+            price: Number(item.price || 0),
+          }
       ))
       : [];
 
@@ -134,6 +169,37 @@ export default function App() {
     };
   }, [loadProducts]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (user?.email) {
+      window.localStorage.setItem(USER_SESSION_STORAGE_KEY, JSON.stringify(user));
+      return;
+    }
+
+    window.localStorage.removeItem(USER_SESSION_STORAGE_KEY);
+  }, [user]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (cartItems.length > 0) {
+      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+      return;
+    }
+
+    window.localStorage.removeItem(CART_STORAGE_KEY);
+  }, [cartItems]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (window.location.pathname === '/admin' && user?.role === 'admin') {
+      setIsAdminAuthenticated(true);
+      setPage('admin');
+    }
+  }, [user]);
+
   const cartCount = cartItems.reduce((sum, it) => sum + it.qty, 0);
 
   const addToCart = (product) => {
@@ -171,14 +237,32 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Called by LoginPage / SignupPage on successful submit
-  const handleLogin = (userData) => {
-    setUser({ ...userData, role: 'user' });
+  const completePostLoginNavigation = () => {
+
+    if (postAuthRedirect === 'checkout') {
+      setPostAuthRedirect(null);
+      navigate('checkout');
+      return;
+    }
+
     navigate('home');
+  };
+
+  const handleLogin = async ({ email, password }) => {
+    const loggedInUser = await loginUser({ email, password });
+    setUser(loggedInUser);
+    completePostLoginNavigation();
+  };
+
+  const handleSignup = async ({ name, email, password, phone }) => {
+    await signupUser({ name, email, password, phone });
+    setToast('Signup successful. Please login to continue.');
+    navigate('login');
   };
 
   const handleLogout = () => {
     setUser(null);
+    setIsAdminAuthenticated(false);
     navigate('home');
   };
 
@@ -199,10 +283,40 @@ export default function App() {
 
       return unchanged ? prev : next;
     });
-  }, []);
+
+    if (!user?.email) return;
+
+    const merged = { ...user, ...updates };
+    const profilePayload = {
+      name: merged.name,
+      phone: merged.phone || '',
+      address: merged.address || '',
+      savedAddresses: Array.isArray(merged.savedAddresses) ? merged.savedAddresses : [],
+    };
+
+    updateUserProfile(profilePayload, user)
+      .then((serverUser) => {
+        setUser((current) => {
+          if (!current || current.email !== serverUser.email) return current;
+          return { ...current, ...serverUser };
+        });
+      })
+      .catch(() => {
+        setToast('Could not sync profile to backend. Changes are saved locally for now.');
+      });
+  }, [user]);
 
   const handleStartCheckout = () => {
     if (cartItems.length === 0) return;
+
+    if (!user?.email) {
+      setCartOpen(false);
+      setPostAuthRedirect('checkout');
+      setToast('Please login to continue to checkout.');
+      navigate('login');
+      return;
+    }
+
     setCartOpen(false);
     navigate('checkout');
   };
@@ -273,13 +387,19 @@ export default function App() {
       };
 
       if (productId) {
-        await updateProduct(productId, payload, user);
+        const updatedProduct = await updateProduct(productId, payload, user);
+        setProducts((prev) => prev.map((item) => (item.id === productId ? updatedProduct : item)));
       } else {
-        await createProduct(payload, user);
+        const createdProduct = await createProduct(payload, user);
+        setProducts((prev) => [createdProduct, ...prev]);
       }
 
-      const apiProducts = await loadProducts();
-      setProducts(apiProducts);
+      loadProducts()
+        .then((apiProducts) => setProducts(apiProducts))
+        .catch(() => {
+          // Keep the optimistic UI state if background sync fails.
+        });
+
       setToast('Product saved successfully!');
       return true;
     } catch (error) {
@@ -329,12 +449,13 @@ export default function App() {
   const handleToastDone = useCallback(() => setToast(null), []);
   // ── Auth / Profile / Product pages (full-screen) ──
   if (page === 'login')   return <LoginPage  onNavigate={navigate} onLogin={handleLogin} />;
-  if (page === 'signup')  return <SignupPage  onNavigate={navigate} onLogin={handleLogin} />;
+  if (page === 'signup')  return <SignupPage  onNavigate={navigate} onSignup={handleSignup} />;
   if (page === 'profile') {
     return (
       <ProfilePage
         onNavigate={navigate}
         user={user}
+        orders={orders}
         onLogout={handleLogout}
         onUserUpdate={handleUserProfileUpdate}
       />
@@ -378,6 +499,14 @@ export default function App() {
       onAddToCart={addToCart}
     />
   );
+  if (page === 'all-products') return (
+    <AllProduct
+      products={products}
+      onNavigate={navigate}
+      onProductClick={(id) => navigate('product', id)}
+      onAddToCart={addToCart}
+    />
+  );
 
   // ── Main site ──
   return (
@@ -390,11 +519,18 @@ export default function App() {
         onSignup={() => navigate('signup')}
         onProfile={() => navigate('profile')}
         onLogout={handleLogout}
+        onAllProducts={() => navigate('all-products')}
       />
       <main>
         <Hero />
+        <Products
+          products={products}
+          onAddToCart={addToCart}
+          onProductClick={(id) => navigate('product', id)}
+          onViewAll={() => navigate('all-products')}
+        />
         <Features />
-        <Products products={products} onAddToCart={addToCart} onProductClick={(id) => navigate('product', id)} />
+        
         <PromoBanner />
       </main>
       <Footer />
@@ -413,4 +549,31 @@ export default function App() {
       )}
     </>
   );
+}
+
+function getStoredCartItems() {
+  if (typeof window === 'undefined') return [];
+
+  const raw = window.localStorage.getItem(CART_STORAGE_KEY);
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      window.localStorage.removeItem(CART_STORAGE_KEY);
+      return [];
+    }
+
+    return parsed.filter((item) => (
+      item
+      && typeof item === 'object'
+      && item.id != null
+      && Number.isFinite(Number(item.price))
+      && Number.isFinite(Number(item.qty))
+      && Number(item.qty) > 0
+    ));
+  } catch {
+    window.localStorage.removeItem(CART_STORAGE_KEY);
+    return [];
+  }
 }

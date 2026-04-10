@@ -1,5 +1,6 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const mongoose = require('mongoose');
 
 function toOrderDto(order) {
   return {
@@ -30,9 +31,15 @@ async function createOrder(req, res, next) {
     let subtotal = 0;
 
     for (const item of items) {
-      const product = await Product.findById(item.id);
+      const productId = String(item.id || '').trim();
+
+      if (!mongoose.Types.ObjectId.isValid(productId)) {
+        return res.status(400).json({ error: `Invalid product id: ${productId || 'unknown'}` });
+      }
+
+      const product = await Product.findById(productId);
       if (!product) {
-        return res.status(400).json({ error: `Product not found: ${item.id}` });
+        return res.status(400).json({ error: `Product not found: ${productId}` });
       }
 
       const qty = Number(item.qty || 0);
@@ -94,6 +101,10 @@ async function updateOrderStatus(req, res, next) {
   try {
     const { id } = req.params;
     const { status } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid order id' });
+    }
 
     if (!['pending', 'accepted', 'rejected'].includes(status)) {
       return res.status(400).json({ error: 'Invalid status value' });

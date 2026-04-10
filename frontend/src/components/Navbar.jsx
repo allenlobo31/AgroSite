@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function Navbar({ cartCount, onCartOpen, user, onLogin, onSignup, onProfile, onLogout }) {
+export default function Navbar({ cartCount, onCartOpen, user, onLogin, onSignup, onProfile, onLogout, onAllProducts }) {
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -34,6 +34,7 @@ export default function Navbar({ cartCount, onCartOpen, user, onLogin, onSignup,
             {/* Desktop nav links */}
             <ul className="nav-links">
                 <li><a href="#" onClick={(e) => { e.preventDefault(); scrollTo('products'); }}>Best Seller</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); onAllProducts(); }}>All Products</a></li>
                 <li><a href="#" onClick={(e) => { e.preventDefault(); scrollTo('features'); }}>About</a></li>
             </ul>
 
@@ -138,6 +139,7 @@ export default function Navbar({ cartCount, onCartOpen, user, onLogin, onSignup,
                             {item.label}
                         </a>
                     ))}
+                    <button onClick={() => { onAllProducts(); setMobileOpen(false); }} style={{ padding: '12px', border: '1.5px solid #16a34a', borderRadius: 10, background: 'transparent', color: '#16a34a', fontWeight: 600, cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, sans-serif' }}>All Products</button>
                     {user ? (
                         <>
                             <button onClick={() => { onProfile(); setMobileOpen(false); }} style={{ padding: '12px', border: '1.5px solid #16a34a', borderRadius: 10, background: 'transparent', color: '#16a34a', fontWeight: 600, cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, sans-serif' }}>My Profile</button>
