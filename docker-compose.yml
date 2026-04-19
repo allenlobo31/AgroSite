@@ -1,0 +1,45 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: agrosite-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    container_name: agrosite-backend
+    restart: unless-stopped
+    environment:
+      PORT: 5001
+      MONGODB_URI: mongodb://mongo:27017/agrosite
+      NODE_ENV: production
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "5001:5001"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: agrosite-frontend
+    restart: unless-stopped
+    environment:
+      VITE_BACKEND_API_URL: http://localhost:5001/api
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+
+volumes:
+  mongo_data:
